@@ -27,7 +27,7 @@
 1. 创建 Supabase 项目
 2. 打开 **SQL Editor**，运行：`supabase/init.sql`
 3. 同步内置公开模板（推荐）：`pnpm supabase:sync-templates`（需要 `SUPABASE_SERVICE_ROLE_KEY`）
-4. 打开 **Authentication → Email Templates**，把 `supabase/email-templates/magic-link.html` 粘贴到 **Magic Link** 模板（可选，但推荐）
+4. 打开 **Authentication → Email Templates**，把 `supabase/email-templates/magic-link.html` 粘贴到 **Magic Link** 和 **Confirm signup** 模板（可选但推荐：否则新用户首次登录会收到默认英文 “Confirm your signup”）
 
 ## 环境变量
 

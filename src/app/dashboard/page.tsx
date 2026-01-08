@@ -570,6 +570,7 @@ export default function DashboardCreatePage() {
                     value={result.url}
                     monospace
                     copyText="复制订阅链接"
+                    layout="stacked"
                     actions={
                       <>
                         <Button variant="secondary" onClick={() => setQrOpen(true)}>

@@ -1,9 +1,11 @@
 <!--
-vlink-sub · Supabase Auth 邮件模板（Magic Link / OTP）
+vlink-sub · Supabase Auth 邮件模板（Magic Link / Confirm signup）
 
 使用方式：
-Supabase Dashboard → Authentication → Email Templates → Magic Link
-把此文件内容粘贴到 HTML 模板中，并按需修改文案/品牌信息。
+Supabase Dashboard → Authentication → Email Templates →
+- Magic Link（老用户登录）
+- Confirm signup（新用户首次登录/注册）
+把此文件内容分别粘贴到对应的 HTML 模板中，并按需修改文案/品牌信息与邮件主题。
 
 注意：
 - 关键链接变量：{{ .ConfirmationURL }}
