@@ -22,6 +22,14 @@
 
 ## 环境变量
 
+建议先用模板生成本地 `.env`：
+
+```bash
+cp .env.example .env
+```
+
+然后编辑 `.env`，把占位符替换为你的真实值（不要提交 `.env`）。
+
 前端（浏览器可见）：
 
 - `NEXT_PUBLIC_SUPABASE_URL`
@@ -46,6 +54,31 @@ openssl rand -base64 32
 ```bash
 pnpm dev
 ```
+
+## Docker 部署
+
+本项目已启用 Next.js `output: "standalone"`，可直接用 Docker 构建并运行。
+
+注意：`NEXT_PUBLIC_*` 变量会在构建期写入前端 bundle，生产环境通常需要 **按环境构建镜像**。
+
+### 构建镜像
+
+```bash
+docker build \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
+  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+  -t vlink-hub:latest .
+```
+
+### 运行容器
+
+```bash
+docker run --rm -p 3000:3000 \
+  --env-file .env \
+  vlink-hub:latest
+```
+
+访问：`http://localhost:3000`
 
 ## 路由说明
 
