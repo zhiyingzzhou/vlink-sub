@@ -9,6 +9,7 @@ Supabase Dashboard → Authentication → Email Templates →
 
 注意：
 - 关键链接变量：{{ .ConfirmationURL }}
+- 主题色与页面保持一致：src/app/globals.css 的 --app-primary（Light: #5d7052）
 - 不要把 service_role key 放到任何 NEXT_PUBLIC_* 或邮件模板里
 -->
 
@@ -20,41 +21,99 @@ Supabase Dashboard → Authentication → Email Templates →
     <meta name="x-apple-disable-message-reformatting" />
     <title>登录验证 · vlink-sub</title>
   </head>
-  <body style="margin:0;padding:0;background:#f5f6f8;">
+  <body style="margin:0;padding:0;background:#fdfcf8;">
     <!-- Preheader（隐藏预览文案） -->
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
       你的登录链接已生成，请点击完成登录。
     </div>
 
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#fdfcf8;">
       <tr>
         <td align="center" style="padding:28px 16px;">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #e7e9ee;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;background:#fefefa;border-radius:24px;overflow:hidden;border:1px solid #ded8cf;">
             <!-- Header -->
             <tr>
-              <td style="background:#fdfcf8;padding:0;">
-                <img
-                  src="{{ .SiteURL }}/email/header.svg"
-                  width="600"
-                  height="190"
-                  alt="vlink-sub"
-                  style="display:block;width:100%;max-width:600px;height:auto;border:0;outline:none;text-decoration:none;"
-                />
+              <td style="background:#fdfcf8;padding:26px 24px 22px 24px;">
+                <!-- Brand pill（纯 HTML，不依赖图片，尽量兼容常见邮箱客户端） -->
+                <table
+                  role="presentation"
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  width="100%"
+                  style="width:100%;border:1px solid #ded8cf;border-radius:999px;background:#fefefa;overflow:hidden;"
+                >
+                  <tr>
+                    <td style="padding:12px 14px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;">
+                        <tr>
+                          <td valign="middle" style="padding-right:12px;">
+                            <div
+                              style="width:40px;height:40px;border-radius:999px;background:#fdfcf8;border:1px solid #ded8cf;text-align:center;line-height:40px;font-weight:900;font-size:18px;color:#5d7052;"
+                            >
+                              v
+                            </div>
+                          </td>
+                          <td
+                            valign="middle"
+                            style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;"
+                          >
+                            <div style="font-size:16px;line-height:1.2;font-weight:900;color:#2c2c24;letter-spacing:-0.2px;">
+                              vlink-sub
+                            </div>
+                            <div style="margin-top:3px;font-size:12px;line-height:1.4;font-weight:600;color:#78786c;">
+                              Nodes → Clash Meta / Mihomo
+                            </div>
+                          </td>
+                          <td
+                            align="right"
+                            valign="middle"
+                            style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;padding-left:12px;"
+                          >
+                            <span
+                              style="display:inline-block;background:#5d7052;color:#f3f4f1;text-decoration:none;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:0.2px;"
+                            >
+                              登录验证
+                            </span>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Decorative row（轻量装饰，符合整站“Organic/Natural”风格） -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;margin-top:16px;">
+                  <tr>
+                    <td valign="middle">
+                      <span style="display:inline-block;width:72px;height:12px;border-radius:999px;background:#e6dccd;"></span>
+                      <span style="display:inline-block;width:18px;height:18px;border-radius:999px;background:#f0ebe5;margin-left:10px;"></span>
+                      <span style="display:inline-block;width:34px;height:14px;border-radius:999px;background:#ded8cf;margin-left:10px;"></span>
+                    </td>
+                    <td
+                      align="right"
+                      valign="middle"
+                      style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;font-size:12px;line-height:1.6;color:#78786c;"
+                    >
+                      请勿转发链接
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
 
             <!-- Body -->
             <tr>
               <td style="padding:34px 36px 10px 36px;">
-                <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;color:#0f172a;">
-                  <div style="font-size:20px;line-height:1.4;font-weight:800;color:#0f172a;">
+                <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;color:#2c2c24;">
+                  <div style="font-size:20px;line-height:1.4;font-weight:800;color:#2c2c24;">
                     尊敬的用户：
                   </div>
-                  <div style="margin-top:18px;font-size:16px;line-height:1.8;color:#334155;">
+                  <div style="margin-top:18px;font-size:16px;line-height:1.8;color:#4a4a40;">
                     你正在登录 <strong>vlink-sub</strong>。
                   </div>
 
-                  <div style="margin-top:14px;font-size:18px;line-height:1.7;font-weight:700;color:#0f172a;">
+                  <div style="margin-top:14px;font-size:18px;line-height:1.7;font-weight:700;color:#2c2c24;">
                     点击下方按钮即可完成登录验证
                   </div>
 
@@ -62,7 +121,7 @@ Supabase Dashboard → Authentication → Email Templates →
                   <div style="margin-top:20px;">
                     <a
                       href="{{ .ConfirmationURL }}"
-                      style="display:inline-block;background:#6a00ff;color:#ffffff;text-decoration:none;padding:14px 18px;border-radius:14px;font-size:15px;font-weight:700;letter-spacing:0.2px;"
+                      style="display:inline-block;background:#5d7052;color:#f3f4f1;text-decoration:none;padding:14px 18px;border-radius:14px;font-size:15px;font-weight:700;letter-spacing:0.2px;"
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -70,24 +129,24 @@ Supabase Dashboard → Authentication → Email Templates →
                     </a>
                   </div>
 
-                  <div style="margin-top:18px;font-size:13px;line-height:1.8;color:#64748b;">
+                  <div style="margin-top:18px;font-size:13px;line-height:1.8;color:#78786c;">
                     如果按钮无法点击，请复制以下链接到浏览器打开：
                     <div style="margin-top:8px;word-break:break-all;">
-                      <a href="{{ .ConfirmationURL }}" style="color:#2563eb;text-decoration:underline;" target="_blank" rel="noreferrer">
+                      <a href="{{ .ConfirmationURL }}" style="color:#5d7052;text-decoration:underline;" target="_blank" rel="noreferrer">
                         {{ .ConfirmationURL }}
                       </a>
                     </div>
                   </div>
 
-                  <div style="margin-top:22px;padding:14px 14px;border-radius:16px;border:1px solid #e7e9ee;background:#f8fafc;">
-                    <div style="font-size:13px;line-height:1.8;color:#475569;">
+                  <div style="margin-top:22px;padding:14px 14px;border-radius:16px;border:1px solid #ded8cf;background:#f0ebe5;">
+                    <div style="font-size:13px;line-height:1.8;color:#4a4a40;">
                       安全提示：此链接等同密码，请勿转发；如非本人操作可忽略本邮件。
                     </div>
                   </div>
 
-                  <div style="margin-top:22px;font-size:16px;line-height:1.8;color:#334155;">
+                  <div style="margin-top:22px;font-size:16px;line-height:1.8;color:#4a4a40;">
                     祝你使用愉快<br />
-                    <span style="font-weight:700;color:#0f172a;">vlink-sub</span>
+                    <span style="font-weight:700;color:#2c2c24;">vlink-sub</span>
                   </div>
                 </div>
               </td>
@@ -96,7 +155,7 @@ Supabase Dashboard → Authentication → Email Templates →
             <!-- Footer -->
             <tr>
               <td style="padding:18px 36px 28px 36px;">
-                <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;font-size:12px;line-height:1.7;color:#94a3b8;">
+                <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;font-size:12px;line-height:1.7;color:#78786c;">
                   本邮件由系统自动发送，请勿直接回复。<br />
                   © vlink-sub
                 </div>

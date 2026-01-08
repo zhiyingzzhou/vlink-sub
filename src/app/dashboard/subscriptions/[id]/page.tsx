@@ -147,6 +147,7 @@ export default function SubscriptionDetailPage() {
   const [expiryMode, setExpiryMode] = useState<ExpiryMode>("permanent");
   const [customExpiryIso, setCustomExpiryIso] = useState<string | null>(null);
   const [savingBasics, setSavingBasics] = useState(false);
+  const [togglingDisabled, setTogglingDisabled] = useState(false);
 
   const [templates, setTemplates] = useState<TemplateSummary[]>([]);
   const [templatesError, setTemplatesError] = useState("");
@@ -368,6 +369,53 @@ export default function SubscriptionDetailPage() {
     }
   };
 
+  const toggleDisabledRemote = async () => {
+    if (!token || !id) return;
+    if (!row) return;
+
+    const next = !disabled;
+    const ok = await confirm.confirm({
+      title: next ? "停用订阅？" : "启用订阅？",
+      description: next
+        ? "停用后订阅导出将返回 404（不影响历史配置）。"
+        : "启用后订阅地址将恢复可用。",
+      confirmText: next ? "停用" : "启用",
+      cancelText: "取消",
+      variant: next ? "danger" : "primary",
+    });
+    if (!ok) return;
+
+    setActionError("");
+    setTogglingDisabled(true);
+    try {
+      const res = await fetch(`/api/subscriptions/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ disabled: next }),
+      });
+      const json = (await res.json().catch(() => null)) as
+        | { subscription?: SubscriptionDetail; error?: string }
+        | null;
+      if (!res.ok || !json?.subscription) {
+        setActionError(json?.error || "操作失败");
+        toast.error("操作失败", json?.error);
+        return;
+      }
+
+      setRow(json.subscription);
+      setDisabled(Boolean(json.subscription.disabled));
+      toast.success(next ? "已停用" : "已启用");
+    } catch {
+      setActionError("操作失败");
+      toast.error("操作失败");
+    } finally {
+      setTogglingDisabled(false);
+    }
+  };
+
   const loadRaw = async () => {
     if (!token || !id) return;
     setRawLoading(true);
@@ -576,17 +624,18 @@ export default function SubscriptionDetailPage() {
                       <Badge tone="muted">永久</Badge>
                     )}
                   </div>
-                  <div>
-                    short: <span className="font-mono text-foreground">{row.short_code}</span>
-                  </div>
-                  <div>
-                    config_hash: <span className="font-mono text-foreground">{row.config_hash}</span>
-                  </div>
-                  <div>最后下载：{formatDateTime(row.last_downloaded_at)}</div>
-                  <div>创建时间：{formatDateTime(row.created_at)}</div>
-                  <div>更新时间：{formatDateTime(row.updated_at)}</div>
-                </div>
-              </Card>
+	                  <div>
+	                    short: <span className="font-mono text-foreground">{row.short_code}</span>
+	                  </div>
+	                  <div>
+	                    config_hash:{" "}
+	                    <span className="font-mono text-foreground break-all">{row.config_hash}</span>
+	                  </div>
+	                  <div>最后下载：{formatDateTime(row.last_downloaded_at)}</div>
+	                  <div>创建时间：{formatDateTime(row.created_at)}</div>
+	                  <div>更新时间：{formatDateTime(row.updated_at)}</div>
+	                </div>
+	              </Card>
 
               <Card tone="accent">
                 <CardTitle>订阅地址</CardTitle>
@@ -602,6 +651,7 @@ export default function SubscriptionDetailPage() {
                         value={currentUrl}
                         monospace
                         copyText="复制链接"
+                        layout="stacked"
                         actions={
                           <>
                             <Button variant="secondary" onClick={() => setQrOpen(true)}>
@@ -686,8 +736,16 @@ export default function SubscriptionDetailPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
-                    <Button variant="secondary" onClick={() => setDisabled((v) => !v)}>
-                      {disabled ? "当前：停用（点击切换）" : "当前：启用（点击切换）"}
+                    <Button
+                      variant="secondary"
+                      onClick={() => void toggleDisabledRemote()}
+                      disabled={togglingDisabled}
+                    >
+                      {togglingDisabled
+                        ? "切换中…"
+                        : disabled
+                          ? "当前：停用（点击启用）"
+                          : "当前：启用（点击停用）"}
                     </Button>
                     <Button onClick={() => void saveBasics()} disabled={savingBasics}>
                       {savingBasics ? "保存中…" : "保存"}
