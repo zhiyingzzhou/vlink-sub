@@ -505,7 +505,7 @@ export default function SubscriptionDetailPage() {
       <PageHeader
         badge={<Badge tone="accent">订阅详情</Badge>}
         title={row?.name || "订阅"}
-        description="shortCode + secret 为真实导出地址；secret 不落库，只在创建/重置时返回。"
+        description="shortCode + secret 为真实导出地址；secret 不落库，只在创建/重置时返回，并默认只缓存在当前浏览器。"
         actions={
           <>
             <ButtonLink href="/dashboard/subscriptions" variant="secondary" size="sm">
@@ -630,7 +630,7 @@ export default function SubscriptionDetailPage() {
                         本机未保存 secret
                       </div>
                       <div className="mt-2 text-sm text-muted-foreground">
-                        没有 secret 就无法得到真实订阅链接。你可以重置 secret 生成新链接。
+                        换设备登录或清理浏览器数据会导致 secret 丢失；没有 secret 就无法得到真实订阅链接。你可以重置 secret 生成新链接（旧链接失效）。
                       </div>
                     </div>
                   )}

@@ -585,6 +585,13 @@ export default function DashboardCreatePage() {
                     }
                   />
 
+                  <div className="rounded-[2rem] border border-border/60 bg-background/40 p-4 text-sm text-muted-foreground shadow-[var(--shadow-soft)]">
+                    提示：订阅地址中的 <span className="font-mono">secret</span>{" "}
+                    相当于密码，只在创建/重置时返回一次，并默认只缓存在当前浏览器（localStorage）。
+                    建议保存完整订阅链接；换设备登录或清理浏览器数据后，控制台无法找回旧链接（只能重置{" "}
+                    <span className="font-mono">secret</span> 生成新链接，旧链接失效）。
+                  </div>
+
                   <div className="flex flex-wrap gap-2">
                     {installLink ? (
                       <ButtonAnchor href={installLink} variant="primary">

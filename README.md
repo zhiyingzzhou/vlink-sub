@@ -1,6 +1,8 @@
 # vlink-sub
 
-面向规模化的节点转换与订阅管理服务：解析任意来源的节点混杂文本 → 生成 Clash Meta（Mihomo）订阅，并支持模板快照、短链防扫库、ETag/304 缓存与加密存储。
+面向规模化的节点转换与订阅管理服务：解析任意来源的节点混杂文本 → 生成 Clash Meta（Mihomo）订阅，并支持模板快照、短链防扫库、ETag/304 缓存与加密存储（[Vercel 一键部署](#vercel-一键部署)）。
+
+体验链接：https://vlink-sub.vercel.app
 
 ## 功能概览
 
@@ -8,10 +10,17 @@
 - **模板系统**：公开模板 + “我的模板”增删改；订阅创建时写入 **template_snapshot**，模板更新不影响老订阅
 - **安全模型**：
   - `raw_data` 使用 **AES-256-GCM** 加密存储（支持 `key_id/keyring` 轮换）
-  - 导出地址采用 **shortCode + secret** 两段 token；secret 不落库，仅存 `sha256(secret)`
+  - 导出地址采用 **shortCode + secret** 两段 token；secret 不落库，仅存 `sha256(secret)`（注意：换设备/清缓存后控制台无法找回旧 secret，详见下方）
   - 管理端走 Supabase Auth（JWT）+ RLS；导出端 `/s/*` 只读 RPC 查询
 - **性能**：导出支持 **ETag/If-None-Match**，尽量 304（不回传 YAML）
 - **导入体验**：控制台提供订阅链接一键复制、二维码、以及（部分客户端支持的）`clash://install-config` 一键导入
+
+## 重要：订阅链接 / secret 备份（换设备）
+
+- `secret` 相当于订阅密码，只在创建/重置时返回一次；服务端不保存明文，控制台默认只把它缓存到当前浏览器的 `localStorage`。
+- 换设备登录或清理浏览器数据后，如果你没保存过 `secret`（或完整订阅链接），控制台将无法生成旧订阅的真实导出地址。
+- 丢失 `secret` 的处理方式：在订阅详情页点击“重置 secret”生成新链接（旧链接会立即失效，客户端需要更新为新链接）。
+- 建议：把完整订阅链接保存到密码管理器/备忘录，或直接导入 Mihomo/Clash 客户端。
 
 ## 初始化（Supabase）
 
@@ -29,6 +38,25 @@ cp .env.example .env
 ```
 
 然后编辑 `.env`，把占位符替换为你的真实值（不要提交 `.env`）。
+
+### 环境变量表（对照 `.env.example`）
+
+| 变量 | 必填 | 范围 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | 是 | 浏览器 + 服务端 | — | Supabase Project URL。用于创建 `supabase-js` client；浏览器端也需要所以必须带 `NEXT_PUBLIC_` 前缀。 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 是 | 浏览器 + 服务端 | — | Supabase anon key（Publishable）。浏览器端用于登录/读写（受 RLS 限制）；服务端 RLS client 也会用它 + JWT。 |
+| `SUPABASE_URL` | 否 | 服务端 | — | 服务端专用的 Supabase URL（当你不想在服务端复用 `NEXT_PUBLIC_SUPABASE_URL` 时）。代码优先读取 `NEXT_PUBLIC_SUPABASE_URL`，其次才读 `SUPABASE_URL`。 |
+| `DATA_ENCRYPTION_KEY` | 是 | 服务端（机密） | — | AES-256-GCM 32 字节 base64 key。用于加密 `subscriptions.raw_data`；务必使用随机强密钥（生成：`openssl rand -base64 32`）。 |
+| `DATA_ENCRYPTION_KEY_ID` | 否 | 服务端（机密） | `k1` | 当前加密 key 的 ID。密文格式：`v2:<key_id>:<base64(iv+tag+ciphertext)>`。 |
+| `DATA_ENCRYPTION_KEYRING` | 否 | 服务端（机密） | 空 | 旧密钥环（用于密钥轮换后仍能解密历史数据）。格式：`id=base64,id=base64`（逗号分隔）。 |
+| `DOWNLOAD_COUNT_MIN_INTERVAL_SECONDS` | 否 | 服务端 | `600` | 同一订阅两次 `download_count` 写库的最小间隔（秒），用于去抖。<br/>推荐：生产 `600` / 测试 `60` / 开发 `0`（不建议上生产）。 |
+| `SUPABASE_SERVICE_ROLE_KEY` | 否 | 服务端（机密） | — | Supabase service_role key。用途：<br/>- 运行 `pnpm supabase:sync-templates` 同步内置公开模板（绕过 RLS）<br/>- 调用 RPC `increment_subscription_download_count`（去抖写库）<br/>注意：绝对不要用 `NEXT_PUBLIC_` 前缀，也不要在浏览器端暴露。 |
+| `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` | 否 | 浏览器（公开） | — | hCaptcha site key。配合 Supabase Dashboard 启用 Captcha：登录页展示验证码并把 token 透传给 Supabase。 |
+| `AUTH_OTP_WINDOW_SECONDS` | 否 | 服务端 | `600` | 登录邮件发送限流窗口（秒，单实例内存）。多实例/无状态部署建议接入 Redis/WAF/边缘限流。 |
+| `AUTH_OTP_LIMIT_PER_IP` | 否 | 服务端 | `12` | 限流：每个 IP 在窗口期内允许的发送次数。 |
+| `AUTH_OTP_LIMIT_PER_EMAIL` | 否 | 服务端 | `4` | 限流：每个邮箱在窗口期内允许的发送次数。 |
+| `AUTH_OTP_LIMIT_PER_IP_EMAIL` | 否 | 服务端 | `3` | 限流：同一 IP + 同一邮箱在窗口期内允许的发送次数。 |
+| `NEXT_TELEMETRY_DISABLED` | 否 | 服务端 | `1` | 关闭 Next.js 遥测（可选）。 |
 
 前端（浏览器可见）：
 

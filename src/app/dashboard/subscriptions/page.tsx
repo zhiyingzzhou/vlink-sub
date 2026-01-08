@@ -256,7 +256,7 @@ export default function SubscriptionsPage() {
       <PageHeader
         badge={<Badge tone="primary">订阅</Badge>}
         title="订阅管理"
-        description="订阅地址采用 shortCode + secret；secret 只会在创建/重置时返回，建议保存在本机。"
+        description="订阅地址采用 shortCode + secret；secret 只会在创建/重置时返回并默认缓存在本机浏览器。换设备/清缓存后若未备份，将无法找回旧链接（只能重置 secret）。"
         actions={
           <>
             <ButtonLink href="/dashboard" variant="secondary" size="sm">
