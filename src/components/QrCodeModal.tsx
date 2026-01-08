@@ -7,6 +7,11 @@ import { Button, ButtonAnchor } from "@/components/ui/Button";
 import { CopyField } from "@/components/ui/CopyField";
 import { Dialog } from "@/components/ui/Dialog";
 
+/**
+ * 订阅链接弹窗：展示链接、二维码、以及（部分客户端支持的）一键导入。
+ *
+ * 注意：订阅链接中的 shortCode + secret 等同“密码”，建议仅分享给自己。
+ */
 export function QrCodeModal({
   open,
   title,
@@ -135,6 +140,7 @@ export function QrCodeModal({
             description="建议只分享给自己；如果泄露，可随时重置 secret。"
             value={value}
             monospace
+            layout="stacked"
             copyText="一键复制"
             actions={
               <>

@@ -10,10 +10,23 @@ import { createSupabaseRlsClient } from "@/lib/supabase/rls";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * 重新生成订阅配置（控制台“重新生成/切换模板/更新原文”用）。
+ *
+ * 能做的事：
+ * - 只重算 `config_cache/config_hash`（默认）
+ * - 可选更新 raw（会重新加密入库）
+ * - 可选切换模板：写入 `template_id/template_snapshot`（保证输出快照稳定）
+ * - 可选更新 name/disabled/expires_at
+ */
 type RouteContext = {
   params: { id: string } | Promise<{ id: string }>;
 };
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** 将用户输入的时间字符串解析为 ISO；非法值返回 null。 */
 function parseExpiresAt(value: unknown): string | null {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value !== "string") return null;
@@ -36,19 +49,31 @@ type TemplateDirective =
   | { has: false }
   | { has: true; templateId: string | null };
 
+/**
+ * 读取“是否要修改 template”的指令。
+ *
+ * - body 中不包含 template 字段：表示保持不变
+ * - templateId/template_id 显式为 null/空：表示取消模板（回退到默认注入）
+ * - templateId/template_id 为字符串：表示切换到对应模板，并写入快照
+ */
 function readTemplateDirective(body: Body): TemplateDirective | { error: string } {
   const has = "templateId" in body || "template_id" in body;
   if (!has) return { has: false };
 
   const raw = "templateId" in body ? body.templateId : body.template_id;
   if (raw === null || raw === "" || raw === undefined) return { has: true, templateId: null };
-  if (typeof raw === "string") return { has: true, templateId: raw };
+  if (typeof raw === "string") {
+    const next = raw.trim();
+    if (!next) return { has: true, templateId: null };
+    if (!UUID_RE.test(next)) return { error: "invalid templateId" };
+    return { has: true, templateId: next };
+  }
   return { error: "invalid templateId" };
 }
 
 export async function POST(req: Request, ctx: RouteContext) {
   const { id } = await ctx.params;
-  if (!id) return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  if (!id || !UUID_RE.test(id)) return NextResponse.json({ error: "invalid id" }, { status: 400 });
 
   const token = getBearerToken(req);
   if (!token) return NextResponse.json({ error: "unauthorized" }, { status: 401 });

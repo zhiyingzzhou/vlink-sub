@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -27,15 +27,16 @@ type TemplateDetail = {
   updated_at: string;
 };
 
-export default function TemplateDetailPage({ params }: { params: { id: string } }) {
+export default function TemplateDetailPage() {
   const { session, ready, error } = useSupabaseSession();
   const toast = useToast();
   const confirm = useConfirm();
   const router = useRouter();
+  const params = useParams<{ id?: string }>();
 
   const token = session?.access_token || "";
   const userId = session?.user?.id || "";
-  const id = params.id;
+  const id = typeof params?.id === "string" ? params.id : "";
 
   const [tpl, setTpl] = useState<TemplateDetail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -52,6 +53,7 @@ export default function TemplateDetailPage({ params }: { params: { id: string } 
   }, [tpl, userId]);
 
   const load = useCallback(async () => {
+    if (!id) return;
     setLoading(true);
     setActionError("");
     try {
@@ -83,6 +85,10 @@ export default function TemplateDetailPage({ params }: { params: { id: string } 
   }, [load]);
 
   const save = async () => {
+    if (!id) {
+      toast.error("无效模板 ID");
+      return;
+    }
     if (!token) {
       toast.error("请先登录");
       return;
@@ -133,6 +139,7 @@ export default function TemplateDetailPage({ params }: { params: { id: string } 
   };
 
   const duplicateToMine = async () => {
+    if (!id) return;
     if (!token) {
       toast.error("需要登录", "登录后才能复制为我的模板");
       return;
@@ -172,6 +179,7 @@ export default function TemplateDetailPage({ params }: { params: { id: string } 
   };
 
   const remove = async () => {
+    if (!id) return;
     if (!token) {
       toast.error("请先登录");
       return;

@@ -14,6 +14,16 @@ import { cn } from "@/lib/ui/cn";
 import { PROXY_TYPE_META } from "@/lib/proxy/meta";
 import type { ProxyNode, ProxyType } from "@/lib/proxy/types";
 
+/**
+ * 解析结果预览组件（控制台侧）。
+ *
+ * 功能：
+ * - 节点列表 + 类型筛选/搜索
+ * - 查看单节点详情（Dialog）
+ * - 便捷复制：server:port、单条代理 YAML、`proxies:` 块、以及常见凭据字段
+ *
+ * 注意：复制内容可能包含密码/私钥等敏感信息，分享前请自行脱敏。
+ */
 type NodesPreviewProps = {
   nodes: ProxyNode[];
   className?: string;
@@ -21,6 +31,7 @@ type NodesPreviewProps = {
   emptyHint?: string;
 };
 
+/** 用于 UI 展示的轻量脱敏（默认保留头尾）。 */
 function mask(value: string | undefined, opts?: { head?: number; tail?: number }): string {
   const head = opts?.head ?? 6;
   const tail = opts?.tail ?? 4;
@@ -30,6 +41,7 @@ function mask(value: string | undefined, opts?: { head?: number; tail?: number }
   return `${v.slice(0, head)}…${v.slice(-tail)}`;
 }
 
+/** 拼接展示用字段（跳过空值）。 */
 function joinParts(parts: Array<string | null | undefined>, sep = " · "): string {
   return parts
     .map((p) => (p || "").trim())
@@ -286,6 +298,7 @@ function getJsYamlApi(mod: unknown): JsYamlApi | null {
   return null;
 }
 
+/** 用于“复制凭据”按钮：不同协议对应不同敏感字段。 */
 function copyCredential(node: ProxyNode): { label: string; value: string } | null {
   if (node.type === "vless" || node.type === "vmess") {
     return { label: "UUID", value: node.config.uuid };

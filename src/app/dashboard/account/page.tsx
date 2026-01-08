@@ -8,11 +8,12 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 import { ButtonLink } from "@/components/ui/Link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useToast } from "@/components/ui/Toast";
+import { signOut } from "@/lib/auth/signOut";
 import { useSupabaseSession } from "@/lib/auth/useSession";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-function hasEnv(name: string): boolean {
-  return Boolean((process.env[name] || "").trim());
+/** 前端可见环境变量是否配置（仅能检查 `NEXT_PUBLIC_*` 这类会注入到客户端的变量）。 */
+function hasPublicEnv(value: string | undefined): boolean {
+  return Boolean((value || "").trim());
 }
 
 export default function AccountPage() {
@@ -23,8 +24,7 @@ export default function AccountPage() {
   const onSignOut = async () => {
     setSigningOut(true);
     try {
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut();
+      await signOut();
       toast.success("已退出登录");
     } catch (e) {
       toast.error("退出失败", e instanceof Error ? e.message : undefined);
@@ -114,11 +114,11 @@ export default function AccountPage() {
 
           <Card tone="neutral">
             <CardTitle>环境配置检查</CardTitle>
-            <CardDescription>缺失会导致登录/导出失败</CardDescription>
+            <CardDescription>前端缺失会导致登录/控制台不可用</CardDescription>
             <div className="mt-6 grid gap-2 text-sm text-muted-foreground">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-mono text-xs">NEXT_PUBLIC_SUPABASE_URL</span>
-                {hasEnv("NEXT_PUBLIC_SUPABASE_URL") ? (
+                {hasPublicEnv(process.env.NEXT_PUBLIC_SUPABASE_URL) ? (
                   <Badge tone="primary">已配置</Badge>
                 ) : (
                   <Badge tone="danger">缺失</Badge>
@@ -126,7 +126,7 @@ export default function AccountPage() {
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-mono text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</span>
-                {hasEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") ? (
+                {hasPublicEnv(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ? (
                   <Badge tone="primary">已配置</Badge>
                 ) : (
                   <Badge tone="danger">缺失</Badge>
@@ -134,16 +134,15 @@ export default function AccountPage() {
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-mono text-xs">SUPABASE_SERVICE_ROLE_KEY</span>
-                {hasEnv("SUPABASE_SERVICE_ROLE_KEY") ? (
-                  <Badge tone="primary">已配置</Badge>
-                ) : (
-                  <Badge tone="danger">缺失</Badge>
-                )}
+                <Badge tone="muted">服务端变量（前端不可检测）</Badge>
               </div>
               <div className="mt-2 text-xs text-muted-foreground">
-                <span className="font-mono">DATA_ENCRYPTION_KEY</span> /
-                <span className="font-mono">DATA_ENCRYPTION_KEY_ID</span>{" "}
-                属于服务端变量，前端不会显示。
+                <div>
+                  <span className="font-mono">SUPABASE_SERVICE_ROLE_KEY</span> /{" "}
+                  <span className="font-mono">DATA_ENCRYPTION_KEY</span> /{" "}
+                  <span className="font-mono">DATA_ENCRYPTION_KEY_ID</span> 属于服务端变量，前端不会显示；
+                  其中 service_role 仅用于后台任务/受控 RPC（例如模板同步、下载计数）。
+                </div>
               </div>
             </div>
           </Card>

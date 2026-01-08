@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/ui/cn";
 
+/** 全局背景装饰（点阵 + 渐变 blobs）。纯视觉效果，`aria-hidden`。 */
 export function BackgroundDecor({ className }: { className?: string }) {
   return (
     <div

@@ -10,8 +10,8 @@ export default function HomePage() {
       <section className="grid gap-10 md:grid-cols-2 md:items-center">
         <PageHeader
           badge={<Badge tone="primary">Nodes → Mihomo · Organic / Natural</Badge>}
-          title="vlink-hub"
-          description="把 3x-ui 导出的混杂文本一键解析成 Clash Meta（Mihomo）订阅：全协议解析、模板快照、短链防扫库、ETag/304 缓存与加密存储。"
+          title="vlink-sub"
+          description="把你从面板 / 客户端 / 频道复制的节点混杂文本一键解析成 Clash Meta（Mihomo）订阅：全协议解析、模板快照、短链防扫库、ETag/304 缓存与加密存储。"
           actions={<HomeHeroActions />}
         >
           <div className="flex flex-wrap gap-2">
@@ -77,15 +77,6 @@ export default function HomePage() {
             </CardDescription>
           </Card>
         </div>
-      </section>
-
-      <section className="mt-14">
-        <Card tone="accent">
-          <CardTitle>给“千万用户”留的余地</CardTitle>
-          <CardDescription>
-            /s 的限流与统计当前为轻量实现；生产建议上边缘/WAF/Redis 与日志聚合。
-          </CardDescription>
-        </Card>
       </section>
     </MarketingShell>
   );

@@ -1,4 +1,4 @@
--- vlink-hub Supabase 初始化脚本（PostgreSQL）
+-- vlink-sub Supabase 初始化脚本（PostgreSQL）
 -- 运行位置：Supabase Dashboard → SQL Editor
 
 begin;

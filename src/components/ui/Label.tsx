@@ -8,6 +8,7 @@ export type LabelProps = React.LabelHTMLAttributes<HTMLLabelElement> & {
   requiredMark?: boolean;
 };
 
+/** 表单标签组件（可选必填星号）。 */
 export function Label({ className, requiredMark, children, ...props }: LabelProps) {
   return (
     <label

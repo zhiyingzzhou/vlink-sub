@@ -11,6 +11,7 @@ export type PageHeaderProps = {
   className?: string;
 };
 
+/** 页面头部：标题/描述/操作区 + 背景装饰。 */
 export function PageHeader({
   badge,
   title,

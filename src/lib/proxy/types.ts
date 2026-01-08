@@ -1,3 +1,10 @@
+/**
+ * 解析后的节点统一类型定义。
+ *
+ * 说明：
+ * - `UniversalParser` 负责把文本解析成这些结构。
+ * - `toClashProxy/generateClashConfig` 负责把这些结构转换为 Mihomo/Clash 配置。
+ */
 export type ProxyType = "vless" | "vmess" | "trojan" | "ss" | "wireguard";
 
 export type ProxyNode =
@@ -85,4 +92,3 @@ export type ProxyNode =
         persistentKeepalive?: number;
       };
     };
-

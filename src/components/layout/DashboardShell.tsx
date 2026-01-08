@@ -1,47 +1,34 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
 
+import { AppHeader, type AppHeaderNavItem } from "@/components/layout/AppHeader";
+import { AppMobileMenu } from "@/components/layout/AppMobileMenu";
 import { BackgroundDecor } from "@/components/layout/BackgroundDecor";
-import { DashboardMobileMenu } from "@/components/layout/DashboardMobileMenu";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/Link";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useToast } from "@/components/ui/Toast";
+import { signOut } from "@/lib/auth/signOut";
 import { useSupabaseSession } from "@/lib/auth/useSession";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-function NavItem({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
-  const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+const DASHBOARD_NAV_ITEMS: AppHeaderNavItem[] = [
+  { href: "/dashboard", label: "创建", exact: true },
+  { href: "/dashboard/subscriptions", label: "订阅" },
+  { href: "/dashboard/templates", label: "模板" },
+  { href: "/dashboard/account", label: "账号" },
+];
 
-  return (
-    <ButtonLink
-      href={href}
-      variant={active ? "primary" : "ghost"}
-      size="sm"
-    >
-      {children}
-    </ButtonLink>
-  );
-}
-
+/** 控制台通用布局（需要登录但允许未登录展示入口）。 */
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { session } = useSupabaseSession();
   const { success, error } = useToast();
 
+  // 退出登录：清理 Supabase session（前端）。
   const onSignOut = async () => {
     try {
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut();
+      await signOut();
       success("已退出登录");
     } catch (e) {
       error("退出失败", e instanceof Error ? e.message : undefined);
@@ -52,60 +39,49 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen text-foreground">
       <BackgroundDecor className="opacity-90" />
 
-      <header className="sticky top-4 z-40">
-        <div className="mx-auto max-w-6xl px-6 pt-6">
-          <div className="flex items-center justify-between gap-3 rounded-full border border-border/60 bg-card/70 px-3 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
-            <div className="flex min-w-0 items-center gap-2">
-              <ButtonLink
-                href="/"
-                variant="ghost"
+      <AppHeader
+        navItems={DASHBOARD_NAV_ITEMS}
+        desktopRight={
+          <>
+            {session?.user?.email ? (
+              <Badge tone="muted" className="hidden max-w-[220px] truncate xl:inline-flex">
+                {session.user.email}
+              </Badge>
+            ) : null}
+            <ThemeToggle showLabel={false} />
+            {session ? (
+              <Button
+                variant="secondary"
                 size="sm"
-                className="font-heading text-sm font-extrabold"
+                className="h-9 px-4 hover:scale-100 active:scale-100"
+                onClick={onSignOut}
               >
-                vlink-hub
+                退出
+              </Button>
+            ) : (
+              <ButtonLink
+                href="/login"
+                variant="primary"
+                size="sm"
+                className="h-9 px-4 hover:scale-100 active:scale-100"
+              >
+                登录
               </ButtonLink>
-              <span className="hidden text-xs text-muted-foreground sm:inline">
-                控制台
-              </span>
-            </div>
-
-            <nav className="hidden items-center gap-2 md:flex">
-              <NavItem href="/dashboard">创建</NavItem>
-              <NavItem href="/dashboard/subscriptions">订阅</NavItem>
-              <NavItem href="/dashboard/templates">模板</NavItem>
-              <NavItem href="/dashboard/account">账号</NavItem>
-            </nav>
-
-            <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 md:flex">
-                {session?.user?.email ? (
-                  <Badge
-                    tone="muted"
-                    className="hidden max-w-[240px] truncate lg:inline-flex"
-                  >
-                    {session.user.email}
-                  </Badge>
-                ) : null}
-                <ThemeToggle />
-                {session ? (
-                  <Button variant="secondary" size="sm" onClick={onSignOut}>
-                    退出
-                  </Button>
-                ) : (
-                  <ButtonLink href="/login" variant="primary" size="sm">
-                    登录
-                  </ButtonLink>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 md:hidden">
-                <ThemeToggle />
-                <DashboardMobileMenu />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+            )}
+          </>
+        }
+        mobileRight={
+          <>
+            <ThemeToggle showLabel={false} />
+            <AppMobileMenu
+              ariaLabel="打开控制台菜单"
+              title="控制台菜单"
+              fallbackDescription="导航与设置"
+              navItems={DASHBOARD_NAV_ITEMS}
+            />
+          </>
+        }
+      />
 
       <main className="relative mx-auto max-w-6xl px-6 pb-20 pt-10 md:pt-12">
         {children}

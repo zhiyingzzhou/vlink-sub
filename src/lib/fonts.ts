@@ -1,5 +1,12 @@
 import localFont from "next/font/local";
 
+/**
+ * 字体定义（本地 woff2）。
+ *
+ * 使用 `next/font/local`：
+ * - 自动生成 `@font-face`
+ * - 通过 CSS 变量（`--font-*`）注入到 `src/app/layout.tsx`
+ */
 export const headingFont = localFont({
   src: [
     {

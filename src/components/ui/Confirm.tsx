@@ -26,12 +26,21 @@ type ConfirmApi = {
 
 const ConfirmContext = React.createContext<ConfirmApi | null>(null);
 
+/**
+ * 提供 promise 风格的确认弹窗。
+ *
+ * 用法：
+ * `const ok = await confirm.confirm({ title, description })`
+ */
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   const [req, setReq] = React.useState<ConfirmRequest | null>(null);
+  const pendingRef = React.useRef(false);
 
   const confirm = React.useCallback((opts: ConfirmOptions) => {
     const title = (opts.title || "").trim();
     if (!title) return Promise.resolve(false);
+    if (pendingRef.current) return Promise.resolve(false);
+    pendingRef.current = true;
 
     return new Promise<boolean>((resolve) => {
       setReq({
@@ -41,7 +50,10 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
         confirmText: opts.confirmText,
         cancelText: opts.cancelText,
         variant: opts.variant,
-        resolve,
+        resolve: (value) => {
+          pendingRef.current = false;
+          resolve(value);
+        },
       });
     });
   }, []);
@@ -91,6 +103,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** 获取 confirm API（必须在 ConfirmProvider 内使用）。 */
 export function useConfirm(): ConfirmApi {
   const ctx = React.useContext(ConfirmContext);
   if (!ctx) {
@@ -98,4 +111,3 @@ export function useConfirm(): ConfirmApi {
   }
   return ctx;
 }
-

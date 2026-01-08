@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/Link";
 import { useToast } from "@/components/ui/Toast";
+import { signOut } from "@/lib/auth/signOut";
 import { useSupabaseSession } from "@/lib/auth/useSession";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
+/** 营销页右上角的账号入口：展示登录态/退出/登录按钮。 */
 export function MarketingAuthNav() {
   const { session, ready } = useSupabaseSession();
   const toast = useToast();
@@ -18,8 +19,7 @@ export function MarketingAuthNav() {
   const onSignOut = async () => {
     setSigningOut(true);
     try {
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut();
+      await signOut();
       toast.success("已退出登录");
     } catch (e) {
       toast.error("退出失败", e instanceof Error ? e.message : undefined);
@@ -42,7 +42,13 @@ export function MarketingAuthNav() {
         <Badge tone="muted" className="hidden max-w-[220px] truncate md:inline-flex">
           {session.user.email}
         </Badge>
-        <Button variant="secondary" size="sm" onClick={onSignOut} disabled={signingOut}>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="h-9 px-4 hover:scale-100 active:scale-100"
+          onClick={onSignOut}
+          disabled={signingOut}
+        >
           {signingOut ? "退出中…" : "退出"}
         </Button>
       </>
@@ -50,9 +56,13 @@ export function MarketingAuthNav() {
   }
 
   return (
-    <ButtonLink href="/login" variant="primary" size="sm">
+    <ButtonLink
+      href="/login"
+      variant="primary"
+      size="sm"
+      className="h-9 px-4 hover:scale-100 active:scale-100"
+    >
       登录
     </ButtonLink>
   );
 }
-

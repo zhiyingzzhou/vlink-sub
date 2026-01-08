@@ -2,6 +2,11 @@ import type { ProxyNode } from "@/lib/proxy/types";
 
 export type ClashProxy = Record<string, unknown> & { name: string };
 
+/**
+ * 将内部 `ProxyNode` 转换为 Clash Meta（Mihomo）可识别的 proxy 对象。
+ *
+ * 约定：只写入通用字段 + 协议特有字段，保持输出尽量“干净”，其余由模板/默认配置补齐。
+ */
 export function toClashProxy(node: ProxyNode): ClashProxy {
   if (node.type === "vless") {
     const proxy: ClashProxy = {
@@ -143,4 +148,3 @@ export function toClashProxy(node: ProxyNode): ClashProxy {
 
   return proxy;
 }
-

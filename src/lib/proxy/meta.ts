@@ -8,6 +8,7 @@ export type ProxyTypeMeta = {
   tone: BadgeTone;
 };
 
+/** UI 展示用：不同协议对应的徽标文案/色调/字母标记。 */
 export const PROXY_TYPE_META: Record<ProxyType, ProxyTypeMeta> = {
   vless: { label: "VLESS", glyph: "V", tone: "primary" },
   vmess: { label: "VMess", glyph: "M", tone: "secondary" },
@@ -15,4 +16,3 @@ export const PROXY_TYPE_META: Record<ProxyType, ProxyTypeMeta> = {
   ss: { label: "SS", glyph: "S", tone: "accent" },
   wireguard: { label: "WireGuard", glyph: "W", tone: "muted" },
 };
-

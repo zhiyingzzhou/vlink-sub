@@ -5,10 +5,19 @@ import type { ProxyNode } from "@/lib/proxy/types";
 
 type ClashConfig = Record<string, unknown>;
 
+/**
+ * 生成 Clash Meta（Mihomo）配置（YAML 文本）。
+ *
+ * 规则：
+ * - 输入为解析后的节点数组；会先做 name 去重（Clash 要求 proxy name 唯一）。
+ * - 可选传入模板 YAML：与默认值合并；缺失字段会注入一套安全的默认规则/规则集/DNS。
+ * - 输出为可直接导入的完整 YAML，并在关键段落插入注释（便于人读/排错）。
+ */
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** Clash 要求 proxy name 唯一；发现重名时自动追加序号。 */
 function dedupeNames(nodes: ProxyNode[]): ProxyNode[] {
   const seen = new Map<string, number>();
   return nodes.map((node) => {
@@ -20,6 +29,14 @@ function dedupeNames(nodes: ProxyNode[]): ProxyNode[] {
   });
 }
 
+/**
+ * 注入必备的 proxy-groups。
+ *
+ * - `🚀 节点选择`：手动选择入口
+ * - `⚡ 自动测速`：url-test 自动测速
+ *
+ * 模板中同名组会被“要求项”覆盖，其他组保留。
+ */
 function ensureProxyGroups(
   existing: unknown,
   proxyNames: string[]
@@ -67,6 +84,11 @@ function ensureProxyGroups(
   return merged;
 }
 
+/**
+ * 默认 rule-providers（Loyalsoldier 规则集）。
+ *
+ * 模板若未提供 `rule-providers`，则注入这一套。
+ */
 function defaultRuleProviders(): Record<string, unknown> {
   const base = (name: string, behavior: "domain" | "ipcidr" | "classical", url: string) => ({
     type: "http",
@@ -101,6 +123,7 @@ function defaultRuleProviders(): Record<string, unknown> {
   };
 }
 
+/** 默认 rules（配合上面的 rule-providers 与 proxy-groups）。 */
 function defaultRules(): string[] {
   return [
     "RULE-SET,applications,DIRECT",
@@ -118,6 +141,7 @@ function defaultRules(): string[] {
   ];
 }
 
+/** 默认 DNS（Fake-IP）。 */
 function defaultDns(): Record<string, unknown> {
   return {
     enable: true,
@@ -130,6 +154,7 @@ function defaultDns(): Record<string, unknown> {
   };
 }
 
+/** 合并 DNS：模板里可覆盖默认，但会补齐关键字段。 */
 function mergeDns(existing: unknown): Record<string, unknown> {
   const base = defaultDns();
   if (!isPlainObject(existing)) return base;
@@ -143,6 +168,7 @@ function mergeDns(existing: unknown): Record<string, unknown> {
   return merged;
 }
 
+/** 解析模板 YAML；解析失败返回空对象（避免模板错误导致整条链路崩）。 */
 function parseTemplate(templateContent: string | null | undefined): ClashConfig {
   if (!templateContent) return {};
   try {
@@ -153,6 +179,7 @@ function parseTemplate(templateContent: string | null | undefined): ClashConfig 
   }
 }
 
+/** 在导出的 YAML 中插入一些“可读性”注释（不影响 Clash 解析）。 */
 function injectComments(dumped: string): string {
   let out = dumped;
   out = out.replace(
@@ -166,6 +193,12 @@ function injectComments(dumped: string): string {
   return `# vlink-sub / Mihomo\n# theme: #6a00ff\n${out}`;
 }
 
+/**
+ * 生成 Clash YAML 文本（用于订阅导出与控制台预览）。
+ *
+ * @param nodes 解析后的节点数组
+ * @param templateContent 可选：模板 YAML（快照或实时模板内容）
+ */
 export function generateClashConfig(nodes: ProxyNode[], templateContent?: string | null): string {
   const uniqNodes = dedupeNames(nodes);
   const proxies = uniqNodes.map(toClashProxy);

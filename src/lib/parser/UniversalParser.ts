@@ -2,6 +2,14 @@ import type { ProxyNode } from "@/lib/proxy/types";
 
 type Protocol = "vmess" | "vless" | "trojan" | "ss" | "wireguard";
 
+/**
+ * 通用订阅/节点文本解析器。
+ *
+ * 输入：用户从面板 / 客户端 / 频道复制出来的一段“混杂文本”。
+ * 输出：可用于生成 Clash/Mihomo 配置的结构化节点数组，并提供逐条错误报告（不崩全局）。
+ *
+ * 支持协议：vmess / vless / trojan / ss / wireguard
+ */
 export type ParseError = {
   protocol: Protocol;
   link: string;
@@ -24,6 +32,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** decodeURIComponent 的安全版本：解码失败则返回原字符串。 */
 function safeDecodeURIComponent(value: string): string {
   try {
     return decodeURIComponent(value);
@@ -32,12 +41,19 @@ function safeDecodeURIComponent(value: string): string {
   }
 }
 
+/** URL-safe base64 归一化（补齐 padding，替换 -/_）。 */
 function normalizeBase64(input: string): string {
   const base64 = input.replace(/-/g, "+").replace(/_/g, "/").trim();
   const pad = base64.length % 4;
   return pad === 0 ? base64 : base64 + "=".repeat(4 - pad);
 }
 
+/**
+ * Base64 解码为 UTF-8 字符串。
+ *
+ * - Node.js 环境使用 `Buffer`
+ * - 浏览器环境回退到 `atob`/`TextDecoder`
+ */
 function safeBase64ToString(input: string): string | null {
   const normalized = normalizeBase64(input);
   try {
@@ -63,6 +79,7 @@ function safeBase64ToString(input: string): string | null {
 
 type LinkMatch = { link: string; protocol: Protocol; index: number; line: number };
 
+/** 将字符 index 转换为“行号”（从 1 开始），用于更友好的报错展示。 */
 function getLineFromIndex(raw: string, index: number): number {
   let line = 1;
   for (let i = 0; i < raw.length && i < index; i += 1) {
@@ -71,6 +88,7 @@ function getLineFromIndex(raw: string, index: number): number {
   return line;
 }
 
+/** 从混杂文本中提取形如 `proto://...` 的链接，并记录其出现位置。 */
 function extractLinks(raw: string): LinkMatch[] {
   const out: LinkMatch[] = [];
   const re = /\b(vmess|vless|trojan|ss|wireguard):\/\/[^\s<>"']+/gi;
@@ -92,6 +110,7 @@ function getNameFromHash(hash: string | null | undefined): string | undefined {
   return safeDecodeURIComponent(trimmed);
 }
 
+/** 解析端口号：非法/缺失返回 null。 */
 function parsePort(value: string | null | undefined): number | null {
   if (!value) return null;
   const port = Number(value);
@@ -491,6 +510,11 @@ function getProtocol(link: string): Protocol | null {
 }
 
 export class UniversalParser {
+  /**
+   * 解析文本，并返回完整报告（节点 + 错误 + 统计）。
+   *
+   * 该方法不会抛错：单条链接解析失败会记录到 `errors`，其余继续解析。
+   */
   parseWithReport(raw: string): ParseReport {
     const matches = extractLinks(raw);
     const nodes: ProxyNode[] = [];
@@ -551,6 +575,7 @@ export class UniversalParser {
     };
   }
 
+  /** 只返回解析成功的节点列表（UI 快速预览用）。 */
   parse(raw: string): ProxyNode[] {
     return this.parseWithReport(raw).nodes;
   }

@@ -2,11 +2,22 @@ import "server-only";
 
 import crypto from "node:crypto";
 
+/**
+ * 订阅原文加/解密（AES-256-GCM）。
+ *
+ * 存储格式（版本化，便于密钥轮换/升级）：
+ * `v2:<keyId>:<base64(iv + tag + ciphertext)>`
+ *
+ * 约定：
+ * - 加密失败直接抛错（通常是环境变量缺失/密钥非法）。
+ * - 解密失败返回空字符串（调用方可将其视为“数据损坏/密钥不匹配”）。
+ */
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
 const VERSION = "v2";
 const KEY_BYTES = 32;
 
+/** URL-safe base64 归一化到 Node.js 可解码的 base64（补齐 padding）。 */
 function normalizeBase64(input: string): string {
   const base64 = input.replace(/-/g, "+").replace(/_/g, "/").trim();
   const pad = base64.length % 4;
@@ -16,6 +27,13 @@ function normalizeBase64(input: string): string {
 let cachedKeyring: { activeKeyId: string; keys: Map<string, Buffer> } | null =
   null;
 
+/**
+ * 从环境变量加载密钥/Keyring，并做基础校验。
+ *
+ * - `DATA_ENCRYPTION_KEY`：当前生效的 32 字节 base64 key
+ * - `DATA_ENCRYPTION_KEY_ID`：当前 key 的 id（默认 k1）
+ * - `DATA_ENCRYPTION_KEYRING`：旧 key 列表（读取旧数据用），格式 `id=base64,id=base64`
+ */
 function loadKeyring(): { activeKeyId: string; keys: Map<string, Buffer> } {
   if (cachedKeyring) return cachedKeyring;
 
@@ -48,10 +66,16 @@ function loadKeyring(): { activeKeyId: string; keys: Map<string, Buffer> } {
   return cachedKeyring;
 }
 
+/** 返回当前写入数据所用的 key id（用于调试/展示）。 */
 export function getActiveEncryptionKeyId(): string {
   return (process.env.DATA_ENCRYPTION_KEY_ID || "k1").trim();
 }
 
+/**
+ * 加密订阅原文，返回可直接入库的字符串。
+ *
+ * @throws 当环境变量缺失或密钥非法时抛错
+ */
 export function encryptRawData(plaintext: string): string {
   const { activeKeyId, keys } = loadKeyring();
   const key = keys.get(activeKeyId);
@@ -68,6 +92,11 @@ export function encryptRawData(plaintext: string): string {
   return `${VERSION}:${activeKeyId}:${packed.toString("base64")}`;
 }
 
+/**
+ * 解密入库的密文。
+ *
+ * @returns 解密失败时返回空字符串（避免在导出/API 路径中抛出并泄漏细节）
+ */
 export function decryptRawData(encrypted: string): string {
   const value = encrypted.trim();
   if (!value.startsWith(`${VERSION}:`)) return "";

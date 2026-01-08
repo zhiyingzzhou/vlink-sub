@@ -1,6 +1,6 @@
 # vlink-sub
 
-面向规模化的节点转换与订阅管理服务：解析 3x-ui 导出内容 → 生成 Clash Meta（Mihomo）订阅，并支持模板快照、短链防扫库、ETag/304 缓存与加密存储。
+面向规模化的节点转换与订阅管理服务：解析任意来源的节点混杂文本 → 生成 Clash Meta（Mihomo）订阅，并支持模板快照、短链防扫库、ETag/304 缓存与加密存储。
 
 ## 功能概览
 
@@ -34,6 +34,7 @@ cp .env.example .env
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- 可选：`NEXT_PUBLIC_HCAPTCHA_SITE_KEY`（配合 Supabase Dashboard 启用 Captcha，用于登录防刷）
 
 服务端（仅 Node.js）：
 
@@ -42,6 +43,8 @@ cp .env.example .env
 - 可选：`DATA_ENCRYPTION_KEYRING`：逗号分隔 `id=base64`，用于密钥轮换读取旧数据
 - 可选：`SUPABASE_SERVICE_ROLE_KEY`（只有在你需要执行 service_role RPC/后台任务时才需要）
 - 可选：`DOWNLOAD_COUNT_MIN_INTERVAL_SECONDS`（默认 `600`，同一订阅写库最小间隔，去抖；推荐：生产 `600` / 测试 `60` / 开发 `0` 不建议上生产）
+- 可选：登录防刷（单实例内存限流）
+  - `AUTH_OTP_WINDOW_SECONDS`、`AUTH_OTP_LIMIT_PER_IP`、`AUTH_OTP_LIMIT_PER_EMAIL`、`AUTH_OTP_LIMIT_PER_IP_EMAIL`
 
 生成示例：
 
@@ -55,6 +58,43 @@ openssl rand -base64 32
 pnpm dev
 ```
 
+## Vercel 一键部署
+
+> 说明：本项目依赖 Supabase（Auth + Postgres）。一键部署负责“把 Next.js 部署上线”，Supabase 需要你先准备好。
+
+### 1) 准备 Supabase
+
+1. 创建 Supabase 项目
+2. Supabase Dashboard → **SQL Editor** 运行：`supabase/init.sql`
+3. （可选，但推荐）同步内置公开模板：本地配置 `SUPABASE_SERVICE_ROLE_KEY` 后运行 `pnpm supabase:sync-templates`
+
+### 2) 一键部署到 Vercel
+
+方式 A：Deploy Button（需要先把仓库推到 GitHub）
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=<YOUR_GITHUB_REPO_URL>)
+
+方式 B：Vercel Dashboard → **Add New… → Project** → 导入你的仓库
+
+在 Vercel 项目里配置环境变量（至少需要这些）：
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `DATA_ENCRYPTION_KEY`（32 字节 base64；生成：`openssl rand -base64 32`）
+
+可选变量见：`.env.example`（例如 `SUPABASE_SERVICE_ROLE_KEY`、`NEXT_PUBLIC_HCAPTCHA_SITE_KEY` 等）。
+
+### 3) 配置登录回调（Supabase Auth）
+
+Supabase Dashboard → Authentication → URL Configuration：
+
+- **Site URL**：填你的线上域名（例如 `https://your-app.vercel.app`）
+- **Redirect URLs**：至少加入
+  - `https://your-app.vercel.app/auth/callback`
+  - `http://localhost:3000/auth/callback`（本地开发）
+
+如果你启用了 Preview 部署，把对应 Preview 域名的 `/auth/callback` 也加入（否则邮件跳转会报 redirect 不允许）。
+
 ## Docker 部署
 
 本项目已启用 Next.js `output: "standalone"`，可直接用 Docker 构建并运行。
@@ -67,7 +107,7 @@ pnpm dev
 docker build \
   --build-arg NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
   --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY" \
-  -t vlink-hub:latest .
+  -t vlink-sub:latest .
 ```
 
 ### 运行容器
@@ -75,7 +115,7 @@ docker build \
 ```bash
 docker run --rm -p 3000:3000 \
   --env-file .env \
-  vlink-hub:latest
+  vlink-sub:latest
 ```
 
 访问：`http://localhost:3000`

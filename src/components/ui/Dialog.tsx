@@ -6,6 +6,11 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { cn } from "@/lib/ui/cn";
 
+/**
+ * 获取容器内可聚焦元素列表，用于简单的焦点循环（focus trap）。
+ *
+ * 注意：这里是轻量实现，满足本项目弹窗交互即可；复杂场景建议引入成熟无障碍组件库。
+ */
 function getFocusable(container: HTMLElement): HTMLElement[] {
   const nodes = Array.from(
     container.querySelectorAll<HTMLElement>(
@@ -30,6 +35,15 @@ export type DialogProps = {
   closeLabel?: string;
 };
 
+/**
+ * 轻量 Dialog（Modal）。
+ *
+ * 能力：
+ * - Portal 到 `document.body`
+ * - ESC 关闭
+ * - 基础焦点管理：打开时聚焦首个可聚焦元素，Tab/Shift+Tab 在弹窗内循环
+ * - 关闭后恢复到打开前的 activeElement
+ */
 export function Dialog({
   open,
   onOpenChange,
@@ -52,7 +66,11 @@ export function Dialog({
       const panel = panelRef.current;
       if (!panel) return;
       const focusables = getFocusable(panel);
-      (focusables[0] || panel).focus();
+      const initial =
+        focusables.find((el) => !el.hasAttribute("data-dialog-close")) ||
+        focusables[0] ||
+        panel;
+      initial.focus();
     }, 0);
 
     return () => {
@@ -151,7 +169,7 @@ export function Dialog({
               "relative w-full",
               sizeClass,
               "rounded-[2.5rem] border border-border/60 bg-card/90 backdrop-blur-md",
-              "shadow-[var(--shadow-float)]",
+              "shadow-(--shadow-float)",
               "px-7 py-6"
             )}
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -175,12 +193,13 @@ export function Dialog({
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
+                data-dialog-close
                 className={cn(
                   "inline-flex items-center justify-center rounded-full",
                   "border border-border/60 bg-background/60 px-4 py-2 text-xs font-semibold text-muted-foreground",
-                  "shadow-[var(--shadow-soft)]",
-                  "transition-all duration-300 [transition-timing-function:var(--ease-organic)]",
-                  "hover:bg-background hover:text-foreground hover:shadow-[var(--shadow-soft-hover)] hover:scale-105",
+                  "shadow-(--shadow-soft)",
+                  "transition-all duration-300 ease-(--ease-organic)",
+                  "hover:bg-background hover:text-foreground hover:shadow-(--shadow-soft-hover) hover:scale-105",
                   "active:scale-95",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 )}

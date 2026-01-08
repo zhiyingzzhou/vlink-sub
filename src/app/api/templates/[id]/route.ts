@@ -7,13 +7,26 @@ import { createSupabaseRlsClient } from "@/lib/supabase/rls";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * 单个模板读写 API。
+ *
+ * - `GET`：未登录也可读公共模板；登录时也可读自己/公开模板。
+ * - `PATCH/DELETE`：需要 Bearer token；权限由 Supabase RLS 控制（只有 owner 可写）。
+ */
 type RouteContext = {
   params: { id: string } | Promise<{ id: string }>;
 };
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUuid(value: string): boolean {
+  return UUID_RE.test(value);
+}
+
 export async function GET(req: Request, ctx: RouteContext) {
   const { id } = await ctx.params;
-  if (!id) return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  if (!id || !isUuid(id)) return NextResponse.json({ error: "invalid id" }, { status: 400 });
 
   const token = getBearerToken(req);
   const supabase = token
@@ -38,7 +51,7 @@ export async function GET(req: Request, ctx: RouteContext) {
 
 export async function PATCH(req: Request, ctx: RouteContext) {
   const { id } = await ctx.params;
-  if (!id) return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  if (!id || !isUuid(id)) return NextResponse.json({ error: "invalid id" }, { status: 400 });
 
   const token = getBearerToken(req);
   if (!token) {
@@ -81,7 +94,7 @@ export async function PATCH(req: Request, ctx: RouteContext) {
 
 export async function DELETE(req: Request, ctx: RouteContext) {
   const { id } = await ctx.params;
-  if (!id) return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  if (!id || !isUuid(id)) return NextResponse.json({ error: "invalid id" }, { status: 400 });
 
   const token = getBearerToken(req);
   if (!token) {
@@ -97,4 +110,3 @@ export async function DELETE(req: Request, ctx: RouteContext) {
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }
-

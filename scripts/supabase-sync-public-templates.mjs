@@ -7,6 +7,15 @@ import { fileURLToPath } from "node:url";
 
 import { createClient } from "@supabase/supabase-js";
 
+/**
+ * 将仓库内置的公开模板同步到 Supabase `templates` 表。
+ *
+ * - 读取 `supabase/templates/public/index.json` 作为索引
+ * - 逐个加载 YAML 内容并 upsert（onConflict: id）
+ * - 支持 `--dry-run` 仅打印将同步的模板列表
+ *
+ * 注意：写入公开模板需要 `SUPABASE_SERVICE_ROLE_KEY` 绕过 RLS。
+ */
 function parseDotenv(content) {
   const out = {};
   const lines = content.split(/\r?\n/);
@@ -28,6 +37,7 @@ function parseDotenv(content) {
   return out;
 }
 
+/** 加载 `.env` 文件并注入到 `process.env`（不覆盖已有 env）。 */
 async function loadEnvFile(filePath) {
   try {
     const content = await fs.readFile(filePath, "utf8");
@@ -40,6 +50,7 @@ async function loadEnvFile(filePath) {
   }
 }
 
+/** 判断 CLI 是否包含某个 flag（例如 `--dry-run`）。 */
 function getFlag(name) {
   return process.argv.includes(name);
 }
@@ -126,4 +137,3 @@ main().catch((err) => {
   console.error(err?.message || String(err));
   process.exit(1);
 });
-

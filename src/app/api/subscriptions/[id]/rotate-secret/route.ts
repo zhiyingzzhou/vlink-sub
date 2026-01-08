@@ -8,10 +8,21 @@ import { createSupabaseRlsClient } from "@/lib/supabase/rls";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * 重置订阅 secret（使旧导出链接失效）。
+ *
+ * 说明：
+ * - 数据库只存 `secret_hash`；真正的 secret 只会在本接口返回一次。
+ * - 前端应将 secret 保存在本机（localStorage），避免丢失后只能再次重置。
+ */
 type RouteContext = {
   params: { id: string } | Promise<{ id: string }>;
 };
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** 生成导出链接所需的 origin（兼容反向代理的 x-forwarded-*）。 */
 function getOrigin(req: Request): string {
   const url = new URL(req.url);
   const proto = req.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
@@ -21,7 +32,7 @@ function getOrigin(req: Request): string {
 
 export async function POST(req: Request, ctx: RouteContext) {
   const { id } = await ctx.params;
-  if (!id) return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  if (!id || !UUID_RE.test(id)) return NextResponse.json({ error: "invalid id" }, { status: 400 });
 
   const token = getBearerToken(req);
   if (!token) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -46,4 +57,3 @@ export async function POST(req: Request, ctx: RouteContext) {
     { status: 200 }
   );
 }
-

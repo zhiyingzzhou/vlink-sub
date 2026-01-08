@@ -17,6 +17,7 @@ const toneClass: Record<NonNullable<BadgeProps["tone"]>, string> = {
   neutral: "bg-card text-foreground border-border/50",
 };
 
+/** 小型徽标组件，用于标签/状态展示。 */
 export function Badge({ className, tone = "neutral", ...props }: BadgeProps) {
   return (
     <span

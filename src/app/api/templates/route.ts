@@ -7,6 +7,12 @@ import { createSupabaseRlsClient } from "@/lib/supabase/rls";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * 模板列表/创建 API。
+ *
+ * - `GET /api/templates`：未登录也可读（公共模板）；登录后还能看到“我的模板”。
+ * - `POST /api/templates`：创建模板（需要 Bearer token，依赖 RLS 限制写入权限）。
+ */
 export async function GET(req: Request) {
   const token = getBearerToken(req);
   const supabase = token
@@ -71,4 +77,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ template: data }, { status: 201 });
 }
-

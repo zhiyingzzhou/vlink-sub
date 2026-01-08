@@ -26,6 +26,7 @@ function toneClass(tone: CardProps["tone"]): string {
   return "border-border/60 bg-card/80";
 }
 
+/** 卡片组件：支持 tone（配色）与 interactive（hover/tap 动效）。 */
 export function Card({
   className,
   tone = "neutral",
@@ -37,8 +38,8 @@ export function Card({
     "relative overflow-hidden border",
     "bg-card/70 backdrop-blur-md",
     "p-7 md:p-8",
-    "shadow-[var(--shadow-soft)]",
-    "transition-all duration-300 [transition-timing-function:var(--ease-organic)]",
+    "shadow-(--shadow-soft)",
+    "transition-all duration-300 ease-(--ease-organic)",
     shapeFor(tone),
     toneClass(tone),
     className
@@ -61,7 +62,7 @@ export function Card({
       <motion.div
         whileHover={{ y: -4, rotate: 1, scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] as const }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         className={classes}
         style={mergedStyle}
         {...rest}
@@ -72,6 +73,7 @@ export function Card({
   return <div className={classes} style={mergedStyle} {...props} />;
 }
 
+/** Card 标题（排版风格统一）。 */
 export function CardTitle({
   className,
   ...props
@@ -84,6 +86,7 @@ export function CardTitle({
   );
 }
 
+/** Card 描述文本（排版风格统一）。 */
 export function CardDescription({
   className,
   ...props

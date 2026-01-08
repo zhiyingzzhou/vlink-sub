@@ -29,6 +29,7 @@ type SubscriptionRow = {
   updated_at: string;
 };
 
+/** expires_at 展示文案（本地时区）。 */
 function formatExpiry(expiresAt: string | null): string {
   if (!expiresAt) return "永久";
   const ms = Date.parse(expiresAt);
@@ -36,6 +37,7 @@ function formatExpiry(expiresAt: string | null): string {
   return new Date(ms).toLocaleString();
 }
 
+/** 订阅列表页：查看订阅、生成/保存导出链接、启用/停用、删除等。 */
 export default function SubscriptionsPage() {
   const { session, ready, error } = useSupabaseSession();
   const toast = useToast();
@@ -146,6 +148,11 @@ export default function SubscriptionsPage() {
     }
   };
 
+  /**
+   * 重置 secret 并返回新的导出链接。
+   *
+   * 注意：旧链接会立即失效；前端会把新 secret 写入 localStorage。
+   */
   const rotateSecret = async (row: SubscriptionRow): Promise<{ url: string; secret: string } | null> => {
     if (!token) return null;
     setActionError("");
@@ -380,7 +387,7 @@ export default function SubscriptionsPage() {
             open={Boolean(linkModal?.url)}
             title="订阅链接"
             value={linkModal?.url || ""}
-            installName={(linkModal?.name || "").trim() || "vlink-hub"}
+            installName={(linkModal?.name || "").trim() || "vlink-sub"}
             onClose={() => setLinkModal(null)}
           />
         </>

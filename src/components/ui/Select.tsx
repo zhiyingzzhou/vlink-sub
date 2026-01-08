@@ -8,12 +8,13 @@ const selectBase =
   "w-full h-12 appearance-none rounded-full px-5 pr-12 text-sm " +
   "bg-input text-foreground " +
   "border border-border/60 " +
-  "shadow-[var(--shadow-soft)] " +
-  "transition-all duration-300 [transition-timing-function:var(--ease-organic)] " +
+  "shadow-(--shadow-soft) " +
+  "transition-all duration-300 ease-(--ease-organic) " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 export type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement>;
 
+/** 原生 `<select>` 的统一样式封装（非弹窗版本）。 */
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function Select(
   { className, children, ...props },
   ref

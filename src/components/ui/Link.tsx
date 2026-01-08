@@ -11,6 +11,7 @@ export type AppLinkProps = Omit<React.ComponentProps<typeof Link>, "className"> 
   className?: string;
 };
 
+/** Next.js `<Link>` 的文本链接样式封装。 */
 export function AppLink({ className, ...props }: AppLinkProps) {
   return (
     <Link
@@ -29,6 +30,7 @@ export type ButtonLinkProps = Omit<React.ComponentProps<typeof Link>, "className
   size?: ButtonSize;
 };
 
+/** 用 `<Link>` 渲染的按钮（复用 Button 的 className 逻辑）。 */
 export function ButtonLink({
   className,
   variant = "primary",
@@ -37,4 +39,3 @@ export function ButtonLink({
 }: ButtonLinkProps) {
   return <Link {...props} className={buttonClassName({ variant, size, className })} />;
 }
-

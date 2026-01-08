@@ -5,6 +5,7 @@ import * as React from "react";
 import { ButtonLink } from "@/components/ui/Link";
 import { useSupabaseSession } from "@/lib/auth/useSession";
 
+/** 首页 Hero 区域的快捷入口按钮（根据登录态显示“登录/注册”）。 */
 export function HomeHeroActions() {
   const { session, ready } = useSupabaseSession();
 

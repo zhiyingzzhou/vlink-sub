@@ -6,13 +6,23 @@ import { createSupabaseRlsClient } from "@/lib/supabase/rls";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * 返回订阅的 YAML 配置（控制台“下载配置”用）。
+ *
+ * 说明：
+ * - 这是控制台侧的“直连下载”，不走 `/s/*` 的短链与限流逻辑。
+ * - 返回 attachment，并附带 ETag（config_hash）便于前端缓存。
+ */
 type RouteContext = {
   params: { id: string } | Promise<{ id: string }>;
 };
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export async function GET(req: Request, ctx: RouteContext) {
   const { id } = await ctx.params;
-  if (!id) return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  if (!id || !UUID_RE.test(id)) return NextResponse.json({ error: "invalid id" }, { status: 400 });
 
   const token = getBearerToken(req);
   if (!token) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -47,8 +57,7 @@ export async function GET(req: Request, ctx: RouteContext) {
       "Content-Type": "text/yaml; charset=utf-8",
       "Cache-Control": "no-store",
       ETag: `"${configHash}"`,
-      "Content-Disposition": `attachment; filename=\"vlink-sub-${shortCode}.yaml\"`,
+      "Content-Disposition": `attachment; filename=vlink-sub-${shortCode}.yaml`,
     },
   });
 }
-

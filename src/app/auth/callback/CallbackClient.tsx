@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { MarketingShell } from "@/components/layout/MarketingShell";
@@ -9,6 +9,16 @@ import { ButtonLink } from "@/components/ui/Link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
+/**
+ * Supabase Auth 回调处理页（客户端逻辑）。
+ *
+ * 兼容多种回调模式：
+ * - PKCE：`?code=...` → `exchangeCodeForSession`
+ * - Implicit：`#access_token=...&refresh_token=...` → `setSession`
+ * - `token_hash + type`：自定义邮件模板可能会用到 → `verifyOtp`
+ *
+ * 成功后统一跳转到 `/dashboard`。
+ */
 function safeDecode(value: string): string {
   try {
     return decodeURIComponent(value);
@@ -22,7 +32,9 @@ export default function CallbackClient() {
   const params = useSearchParams();
 
   const code = params.get("code") || "";
-  const tokenHash = params.get("token_hash") || params.get("token") || "";
+  const tokenHash = params.get("token_hash") || "";
+  const token = params.get("token") || "";
+  const email = params.get("email") || "";
   const otpType = params.get("type") || "";
   const urlError = params.get("error_description") || params.get("error") || "";
 
@@ -38,8 +50,18 @@ export default function CallbackClient() {
     supabase ? "正在完成登录…" : "Supabase 未配置"
   );
 
+  // 备注：开发环境 React StrictMode 可能会触发 effect 二次执行；
+  // 对于 PKCE 回调，这会导致 `exchangeCodeForSession()` 重复调用，
+  // 第二次因 code_verifier 已被消费而报错，但 session 实际已建立。
+  const processedKeyRef = useRef("");
+
   useEffect(() => {
     if (!supabase) return;
+
+    const hashRaw = window.location.hash || "";
+    const key = [code, tokenHash, token, email, otpType, urlError, hashRaw].join("|");
+    if (processedKeyRef.current === key) return;
+    processedKeyRef.current = key;
 
     const run = async () => {
       if (urlError) {
@@ -47,21 +69,20 @@ export default function CallbackClient() {
         return;
       }
 
+      let lastError: string | null = null;
+
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          setMessage(`登录失败：${error.message}`);
+        if (!error) {
+          router.replace("/dashboard");
           return;
         }
-        router.replace("/dashboard");
-        return;
+        lastError = error.message;
       }
 
       // 兼容 implicit flow：token 放在 URL hash（#access_token=...）
-      const hashRaw = window.location.hash.startsWith("#")
-        ? window.location.hash.slice(1)
-        : window.location.hash;
-      const hashParams = new URLSearchParams(hashRaw);
+      const hash = hashRaw.startsWith("#") ? hashRaw.slice(1) : hashRaw;
+      const hashParams = new URLSearchParams(hash);
       const accessToken = hashParams.get("access_token") || "";
       const refreshToken = hashParams.get("refresh_token") || "";
 
@@ -70,12 +91,11 @@ export default function CallbackClient() {
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-        if (error) {
-          setMessage(`登录失败：${error.message}`);
+        if (!error) {
+          router.replace("/dashboard");
           return;
         }
-        router.replace("/dashboard");
-        return;
+        lastError = lastError ?? error.message;
       }
 
       // 兼容 token_hash + type 模式（自定义邮件模板可能会用到）
@@ -89,12 +109,28 @@ export default function CallbackClient() {
             | "invite"
             | "email_change",
         });
-        if (error) {
-          setMessage(`登录失败：${error.message}`);
+        if (!error) {
+          router.replace("/dashboard");
           return;
         }
-        router.replace("/dashboard");
-        return;
+        lastError = lastError ?? error.message;
+      } else if (email && token && otpType) {
+        const { error } = await supabase.auth.verifyOtp({
+          email,
+          token,
+          type: otpType as
+            | "magiclink"
+            | "signup"
+            | "recovery"
+            | "invite"
+            | "email_change"
+            | "email",
+        });
+        if (!error) {
+          router.replace("/dashboard");
+          return;
+        }
+        lastError = lastError ?? error.message;
       }
 
       // 兜底：可能被 detectSessionInUrl 自动处理，或用户已登录
@@ -108,11 +144,16 @@ export default function CallbackClient() {
         return;
       }
 
+      if (lastError) {
+        setMessage(`登录失败：${lastError}`);
+        return;
+      }
+
       setMessage("缺少登录参数，请重新发送邮件登录链接");
     };
 
     void run().catch(() => setMessage("登录失败，请重试"));
-  }, [code, otpType, router, supabase, tokenHash, urlError]);
+  }, [code, email, otpType, router, supabase, token, tokenHash, urlError]);
 
   return (
     <MarketingShell>

@@ -273,9 +273,6 @@ export default function TemplatesPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="搜索模板标题…"
               />
-              <Button variant="secondary" onClick={resetForm}>
-                新建
-              </Button>
             </div>
 
             {actionError ? (

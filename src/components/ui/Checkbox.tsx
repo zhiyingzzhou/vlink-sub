@@ -11,6 +11,7 @@ export type CheckboxProps = Omit<
   children?: React.ReactNode;
 };
 
+/** 受控/非受控均可用的 checkbox（隐藏原生 input，展示自定义样式）。 */
 export function Checkbox({ className, children, id, ...props }: CheckboxProps) {
   const autoId = React.useId();
   const cid = id || autoId;

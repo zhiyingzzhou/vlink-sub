@@ -1,15 +1,17 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 
+import type { AppHeaderNavItem } from "@/components/layout/AppHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { ButtonLink } from "@/components/ui/Link";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useToast } from "@/components/ui/Toast";
+import { signOut } from "@/lib/auth/signOut";
 import { useSupabaseSession } from "@/lib/auth/useSession";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/ui/cn";
 
 function MenuIcon() {
@@ -32,17 +34,40 @@ function MenuIcon() {
   );
 }
 
-export function MarketingMobileMenu({ className }: { className?: string }) {
+function isActive(pathname: string, item: AppHeaderNavItem) {
+  if (item.exact) return pathname === item.href;
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+/** 顶部栏的移动端菜单（Dialog 弹出）。 */
+export function AppMobileMenu({
+  className,
+  ariaLabel,
+  title,
+  fallbackDescription,
+  navItems,
+  signInHref = "/login",
+  signInLabel = "登录",
+}: {
+  className?: string;
+  ariaLabel: string;
+  title: string;
+  fallbackDescription: React.ReactNode;
+  navItems: AppHeaderNavItem[];
+  signInHref?: string;
+  signInLabel?: React.ReactNode;
+}) {
   const [open, setOpen] = React.useState(false);
+  const pathname = usePathname();
   const { session, ready } = useSupabaseSession();
   const toast = useToast();
+
   const [signingOut, setSigningOut] = React.useState(false);
 
   const onSignOut = async () => {
     setSigningOut(true);
     try {
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut();
+      await signOut();
       toast.success("已退出登录");
       setOpen(false);
     } catch (e) {
@@ -58,9 +83,12 @@ export function MarketingMobileMenu({ className }: { className?: string }) {
         type="button"
         variant="ghost"
         size="sm"
-        className={cn("px-4", className)}
+        className={cn(
+          "h-9 w-9 px-0 hover:scale-100 active:scale-100 sm:w-auto sm:px-4",
+          className
+        )}
         onClick={() => setOpen(true)}
-        aria-label="打开菜单"
+        aria-label={ariaLabel}
         title="菜单"
       >
         <MenuIcon />
@@ -70,12 +98,12 @@ export function MarketingMobileMenu({ className }: { className?: string }) {
       <Dialog
         open={open}
         onOpenChange={setOpen}
-        title="菜单"
+        title={title}
         description={
           ready && session?.user?.email ? (
             <span className="font-mono text-xs">{session.user.email}</span>
           ) : (
-            "快速导航与账号操作"
+            fallbackDescription
           )
         }
         size="sm"
@@ -87,33 +115,18 @@ export function MarketingMobileMenu({ className }: { className?: string }) {
           </div>
 
           <div className="grid gap-2">
-            <ButtonLink
-              href="/"
-              variant="secondary"
-              size="lg"
-              className="w-full justify-center"
-              onClick={() => setOpen(false)}
-            >
-              首页
-            </ButtonLink>
-            <ButtonLink
-              href="/dashboard"
-              variant="secondary"
-              size="lg"
-              className="w-full justify-center"
-              onClick={() => setOpen(false)}
-            >
-              控制台
-            </ButtonLink>
-            <ButtonLink
-              href="/dashboard/templates"
-              variant="secondary"
-              size="lg"
-              className="w-full justify-center"
-              onClick={() => setOpen(false)}
-            >
-              模板库
-            </ButtonLink>
+            {navItems.map((item) => (
+              <ButtonLink
+                key={item.href}
+                href={item.href}
+                variant={isActive(pathname, item) ? "primary" : "secondary"}
+                size="lg"
+                className="w-full justify-center"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </ButtonLink>
+            ))}
           </div>
 
           <div className="rounded-[2rem] border border-border/60 bg-background/60 p-4 shadow-[var(--shadow-soft)]">
@@ -130,13 +143,13 @@ export function MarketingMobileMenu({ className }: { className?: string }) {
               </div>
             ) : (
               <ButtonLink
-                href="/login"
+                href={signInHref}
                 variant="primary"
                 size="lg"
                 className="w-full justify-center"
                 onClick={() => setOpen(false)}
               >
-                登录 / 注册
+                {signInLabel}
               </ButtonLink>
             )}
           </div>
@@ -145,4 +158,3 @@ export function MarketingMobileMenu({ className }: { className?: string }) {
     </>
   );
 }
-

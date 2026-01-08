@@ -32,20 +32,42 @@ type ToastApi = {
 
 const ToastContext = React.createContext<ToastApi | null>(null);
 
+/** 不同 toast 类型对应的徽标/阴影样式。 */
 function tone(t: ToastVariant): { badge: string; shadow: string } {
   if (t === "success") {
-    return { badge: "bg-primary text-primary-foreground", shadow: "shadow-[var(--shadow-float)]" };
+    return { badge: "bg-primary text-primary-foreground", shadow: "shadow-(--shadow-float)" };
   }
   if (t === "error") {
-    return { badge: "bg-destructive text-destructive-foreground", shadow: "shadow-[var(--shadow-float)]" };
+    return { badge: "bg-destructive text-destructive-foreground", shadow: "shadow-(--shadow-float)" };
   }
-  return { badge: "bg-accent text-accent-foreground", shadow: "shadow-[var(--shadow-float)]" };
+  return { badge: "bg-accent text-accent-foreground", shadow: "shadow-(--shadow-float)" };
 }
 
+/**
+ * Toast 容器（Provider + UI）。
+ *
+ * 说明：实现为纯前端状态队列；适合业务提示，不做持久化。
+ */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = React.useState<ToastItem[]>([]);
+  const timeoutsRef = React.useRef(new Map<string, number>());
+
+  React.useEffect(() => {
+    const timeouts = timeoutsRef.current;
+    return () => {
+      for (const t of timeouts.values()) {
+        window.clearTimeout(t);
+      }
+      timeouts.clear();
+    };
+  }, []);
 
   const remove = React.useCallback((id: string) => {
+    const t = timeoutsRef.current.get(id);
+    if (t) {
+      window.clearTimeout(t);
+      timeoutsRef.current.delete(id);
+    }
     setItems((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
@@ -64,7 +86,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
       setItems((prev) => [...prev, item]);
 
-      window.setTimeout(() => remove(item.id), item.durationMs);
+      const timeoutId = window.setTimeout(() => remove(item.id), item.durationMs);
+      timeoutsRef.current.set(item.id, timeoutId);
     },
     [remove]
   );
@@ -103,7 +126,7 @@ function ToastCard({ item, onClose }: { item: ToastItem; onClose: () => void }) 
       exit={{ opacity: 0, y: 16, scale: 0.98 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "pointer-events-auto mb-3 rounded-[2rem] border border-border/60 bg-card/90 p-4 backdrop-blur-md",
+        "pointer-events-auto mb-3 rounded-4xl border border-border/60 bg-card/90 p-4 backdrop-blur-md",
         meta.shadow
       )}
       role="status"
@@ -113,7 +136,7 @@ function ToastCard({ item, onClose }: { item: ToastItem; onClose: () => void }) 
         <span
           className={cn(
             "mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full",
-            "border border-border/60 shadow-[var(--shadow-soft)]",
+            "border border-border/60 shadow-(--shadow-soft)",
             meta.badge
           )}
           aria-hidden="true"
@@ -135,9 +158,9 @@ function ToastCard({ item, onClose }: { item: ToastItem; onClose: () => void }) 
           className={cn(
             "inline-flex items-center justify-center rounded-full",
             "border border-border/60 bg-background/60 px-3 py-2 text-xs font-semibold text-muted-foreground",
-            "shadow-[var(--shadow-soft)]",
-            "transition-all duration-300 [transition-timing-function:var(--ease-organic)]",
-            "hover:bg-background hover:text-foreground hover:shadow-[var(--shadow-soft-hover)] hover:scale-105",
+            "shadow-(--shadow-soft)",
+            "transition-all duration-300 ease-(--ease-organic)",
+            "hover:bg-background hover:text-foreground hover:shadow-(--shadow-soft-hover) hover:scale-105",
             "active:scale-95",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           )}
@@ -151,6 +174,7 @@ function ToastCard({ item, onClose }: { item: ToastItem; onClose: () => void }) 
   );
 }
 
+/** 获取 toast API（必须在 ToastProvider 内使用）。 */
 export function useToast(): ToastApi {
   const ctx = React.useContext(ToastContext);
   if (!ctx) {

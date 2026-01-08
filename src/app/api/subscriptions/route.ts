@@ -11,6 +11,17 @@ import { createSupabaseRlsClient } from "@/lib/supabase/rls";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * 订阅管理 API（供控制台前端调用）。
+ *
+ * - `GET /api/subscriptions`：列出当前用户的订阅（需要 Bearer token）。
+ * - `POST /api/subscriptions`：创建订阅（解析 raw → 生成 YAML → 计算 hash → 加密原文入库）。
+ *
+ * 安全边界：真正的鉴权/行级权限由 Supabase RLS 保证；这里主要做输入校验与数据组装。
+ */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function parseExpiresAt(value: unknown): string | null {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value !== "string") return null;
@@ -19,6 +30,7 @@ function parseExpiresAt(value: unknown): string | null {
   return new Date(ms).toISOString();
 }
 
+/** 生成导出链接所需的 origin（兼容反向代理的 x-forwarded-*）。 */
 function getOrigin(req: Request): string {
   const url = new URL(req.url);
   const proto = req.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
@@ -32,6 +44,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  // 通过 access token 创建 RLS client：Supabase 会在服务端验证 token，并应用行级策略。
   const supabase = createSupabaseRlsClient(token);
   const { data, error } = await supabase
     .from("subscriptions")
@@ -52,6 +65,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid token" }, { status: 401 });
   }
 
+  // 输入：raw（必填）+ 可选 templateId/expiresAt/name
   const body = (await req.json().catch(() => null)) as
     | { name?: unknown; raw?: unknown; templateId?: unknown; expiresAt?: unknown }
     | null;
@@ -61,11 +75,15 @@ export async function POST(req: Request) {
 
   const raw = typeof body.raw === "string" ? body.raw : "";
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  const templateId = typeof body.templateId === "string" ? body.templateId : null;
+  const templateId =
+    typeof body.templateId === "string" ? body.templateId.trim() : "";
   const expiresAt = parseExpiresAt(body.expiresAt);
 
   if (!raw.trim()) {
     return NextResponse.json({ error: "raw required" }, { status: 400 });
+  }
+  if (templateId && !UUID_RE.test(templateId)) {
+    return NextResponse.json({ error: "invalid templateId" }, { status: 400 });
   }
 
   const supabase = createSupabaseRlsClient(token);
@@ -98,9 +116,11 @@ export async function POST(req: Request) {
     );
   }
 
+  // 配置：模板快照优先；生成后计算 hash 用作 ETag/缓存命中。
   const yamlText = generateClashConfig(report.nodes, templateSnapshot || null);
   const configHash = sha256Hex(yamlText);
 
+  // 原文入库前加密（避免明文存储）。
   const encryptedRaw = encryptRawData(raw);
 
   const shortCodeLen = 8;
@@ -112,6 +132,7 @@ export async function POST(req: Request) {
     const secret = randomCrockfordBase32(secretLen);
     const secretHash = sha256Hex(secret);
 
+    // 注意：secret 不落库，只写入 secret_hash；实际导出地址由 shortCode + secret 组成。
     const { data, error } = await supabase
       .from("subscriptions")
       .insert({
@@ -152,4 +173,3 @@ export async function POST(req: Request) {
     { status: 503 }
   );
 }
-

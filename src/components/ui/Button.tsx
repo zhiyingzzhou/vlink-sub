@@ -9,22 +9,27 @@ type ButtonSize = "sm" | "md" | "lg";
 
 export type { ButtonVariant, ButtonSize };
 
+/**
+ * 统一按钮样式（button / link-like button）。
+ *
+ * 说明：所有按钮通过 `buttonClassName()` 生成 className，保持交互/阴影/圆角风格一致。
+ */
 const base =
   "inline-flex items-center justify-center gap-2 select-none whitespace-nowrap font-semibold " +
   "rounded-full px-8 " +
-  "transition-all duration-300 [transition-timing-function:var(--ease-organic)] " +
+  "transition-all duration-300 ease-(--ease-organic) " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background " +
   "disabled:opacity-50 disabled:cursor-not-allowed";
 
 const byVariant: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-primary-foreground shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-soft-hover)] hover:scale-105 active:scale-95",
+    "bg-primary text-primary-foreground shadow-(--shadow-soft) hover:shadow-(--shadow-soft-hover) hover:scale-105 active:scale-95",
   secondary:
     "bg-transparent text-secondary border-2 border-secondary/70 shadow-none hover:bg-secondary/10 hover:scale-105 active:scale-95",
   ghost:
     "bg-transparent text-primary border border-transparent shadow-none hover:bg-primary/10 hover:scale-105 active:scale-95",
   destructive:
-    "bg-destructive text-destructive-foreground shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-soft-hover)] hover:scale-105 active:scale-95",
+    "bg-destructive text-destructive-foreground shadow-(--shadow-soft) hover:shadow-(--shadow-soft-hover) hover:scale-105 active:scale-95",
 };
 
 const bySize: Record<ButtonSize, string> = {
@@ -33,6 +38,7 @@ const bySize: Record<ButtonSize, string> = {
   lg: "h-14 text-base px-10",
 };
 
+/** 生成按钮的 className（便于 ButtonLink/ButtonAnchor 等复用）。 */
 export function buttonClassName(opts?: {
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -50,6 +56,7 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   rightIcon?: React.ReactNode;
 };
 
+/** 标准按钮：支持 variant/size 与左右图标插槽。 */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(
     { className, variant = "primary", size = "md", leftIcon, rightIcon, children, ...props },
@@ -76,6 +83,7 @@ export type ButtonAnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & 
   rightIcon?: React.ReactNode;
 };
 
+/** 外链/下载等场景：用 `<a>` 渲染但复用同一套按钮样式。 */
 export const ButtonAnchor = React.forwardRef<HTMLAnchorElement, ButtonAnchorProps>(
   function ButtonAnchor(
     { className, variant = "primary", size = "md", leftIcon, rightIcon, children, ...props },

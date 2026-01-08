@@ -16,6 +16,11 @@ export type CodeBlockProps = {
   className?: string;
 };
 
+/**
+ * 代码块展示组件（可选一键复制）。
+ *
+ * 适用：展示模板 YAML、配置预览、JSON 等内容。
+ */
 export function CodeBlock({
   label,
   description,
@@ -26,15 +31,31 @@ export function CodeBlock({
 }: CodeBlockProps) {
   const toast = useToast();
   const [copied, setCopied] = React.useState(false);
+  const resetTimerRef = React.useRef<number | null>(null);
 
   const canCopy = Boolean((value || "").trim());
+
+  React.useEffect(() => {
+    return () => {
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+        resetTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const onCopy = React.useCallback(async () => {
     if (!canCopy) return;
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1200);
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+      }
+      resetTimerRef.current = window.setTimeout(() => {
+        resetTimerRef.current = null;
+        setCopied(false);
+      }, 1200);
     } catch {
       toast.error("复制失败", "请手动选择并复制");
     }

@@ -27,6 +27,7 @@ const toneClass: Record<TogglePillTone, string> = {
   neutral: "bg-card/70 text-foreground border-border/50",
 };
 
+/** 小型切换按钮（pill）：用于筛选/开关类 UI。 */
 export function TogglePill({
   pressed = false,
   tone = "neutral",
@@ -66,4 +67,3 @@ export function TogglePill({
     </button>
   );
 }
-

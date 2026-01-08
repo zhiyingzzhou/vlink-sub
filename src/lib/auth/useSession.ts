@@ -5,6 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
+/**
+ * 读取当前浏览器端 Supabase session。
+ *
+ * 约定：
+ * - 若未配置 Supabase 环境变量，则 `ready=true` 且 `error` 给出提示（用于本地演示/只读场景）。
+ * - 订阅 auth state change，确保页面内 session 变化能即时反映到 UI。
+ */
 export function useSupabaseSession(): {
   session: Session | null;
   ready: boolean;

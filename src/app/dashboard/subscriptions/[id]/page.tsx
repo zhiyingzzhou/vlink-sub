@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 
 import { NodesPreview } from "@/components/proxy/NodesPreview";
 import { QrCodeModal } from "@/components/QrCodeModal";
@@ -54,10 +55,12 @@ type TemplateSummary = {
   updated_at: string;
 };
 
+/** 以当前时间为基准增加天数，返回 ISO 字符串（用于 expires_at 预设）。 */
 function addDaysIso(days: number): string {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 }
 
+/** ISO 字符串 → 本地可读时间；解析失败返回占位符。 */
 function formatDateTime(iso: string | null): string {
   if (!iso) return "—";
   const ms = Date.parse(iso);
@@ -65,6 +68,7 @@ function formatDateTime(iso: string | null): string {
   return new Date(ms).toLocaleString();
 }
 
+/** 将 UI 选择的到期模式转换成实际写入的 expires_at（ISO 或 null）。 */
 function resolveExpiresAt(
   mode: ExpiryMode,
   customExpiryIso: string | null
@@ -75,6 +79,11 @@ function resolveExpiresAt(
   return customExpiryIso;
 }
 
+/**
+ * 解析输入原文并返回 report（带 memo）。
+ *
+ * 说明：解析失败不会抛错，UI 可以用 `errors/stats` 给出友好提示。
+ */
 function useParseReport(raw: string): {
   nodes: ProxyNode[];
   stats: { totalLinks: number; totalNodes: number; byType: Record<ProxyType, number> };
@@ -119,13 +128,15 @@ function useParseReport(raw: string): {
   }, [raw]);
 }
 
-export default function SubscriptionDetailPage({ params }: { params: { id: string } }) {
+/** 订阅详情页：查看/编辑订阅元信息、原文、配置与导出链接。 */
+export default function SubscriptionDetailPage() {
   const { session, ready, error } = useSupabaseSession();
   const toast = useToast();
   const confirm = useConfirm();
+  const params = useParams<{ id?: string }>();
 
   const token = session?.access_token || "";
-  const id = params.id;
+  const id = typeof params?.id === "string" ? params.id : "";
 
   const [row, setRow] = useState<SubscriptionDetail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -162,7 +173,7 @@ export default function SubscriptionDetailPage({ params }: { params: { id: strin
   const [qrOpen, setQrOpen] = useState(false);
 
   const load = useCallback(async () => {
-    if (!token) return;
+    if (!token || !id) return;
     setLoading(true);
     setActionError("");
     try {
@@ -305,7 +316,7 @@ export default function SubscriptionDetailPage({ params }: { params: { id: strin
 
   const installLink = useMemo(() => {
     if (!currentUrl) return "";
-    const name = (row?.name || "").trim() || "vlink-hub";
+    const name = (row?.name || "").trim() || "vlink-sub";
     return `clash://install-config?url=${encodeURIComponent(
       currentUrl
     )}&name=${encodeURIComponent(name)}`;
@@ -323,7 +334,7 @@ export default function SubscriptionDetailPage({ params }: { params: { id: strin
   }, [currentUrl]);
 
   const saveBasics = async () => {
-    if (!token) return;
+    if (!token || !id) return;
     setActionError("");
     setSavingBasics(true);
     try {
@@ -358,7 +369,7 @@ export default function SubscriptionDetailPage({ params }: { params: { id: strin
   };
 
   const loadRaw = async () => {
-    if (!token) return;
+    if (!token || !id) return;
     setRawLoading(true);
     setRawError("");
     try {
@@ -384,7 +395,7 @@ export default function SubscriptionDetailPage({ params }: { params: { id: strin
   };
 
   const regenerate = async () => {
-    if (!token) return;
+    if (!token || !id) return;
     setRegenLoading(true);
     setRegenError("");
     setRegenHint("");
@@ -429,7 +440,7 @@ export default function SubscriptionDetailPage({ params }: { params: { id: strin
   };
 
   const loadConfigPreview = async () => {
-    if (!token) return;
+    if (!token || !id) return;
     setConfigLoading(true);
     setConfigError("");
     try {
@@ -454,7 +465,7 @@ export default function SubscriptionDetailPage({ params }: { params: { id: strin
   };
 
   const rotateSecret = async () => {
-    if (!token || !row?.short_code) return;
+    if (!token || !id || !row?.short_code) return;
     const ok = await confirm.confirm({
       title: "重置 secret？",
       description: "重置后旧订阅地址会失效，请立即保存新链接。",
@@ -849,7 +860,7 @@ export default function SubscriptionDetailPage({ params }: { params: { id: strin
             open={qrOpen}
             title="订阅二维码"
             value={currentUrl}
-            installName={(row?.name || "").trim() || "vlink-hub"}
+            installName={(row?.name || "").trim() || "vlink-sub"}
             onClose={() => setQrOpen(false)}
           />
         </>

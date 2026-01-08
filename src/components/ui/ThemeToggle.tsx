@@ -7,6 +7,7 @@ import { useTheme } from "@/components/ui/ThemeProvider";
 import type { ThemePreference } from "@/lib/theme/theme";
 import { cn } from "@/lib/ui/cn";
 
+/** 主题切换顺序：system → light → dark → system。 */
 function nextPreference(p: ThemePreference): ThemePreference {
   if (p === "system") return "light";
   if (p === "light") return "dark";
@@ -19,6 +20,7 @@ function labelFor(p: ThemePreference) {
   return "深色";
 }
 
+/** 小图标组件（不引入额外依赖）。 */
 function Icon({ name }: { name: "sun" | "moon" | "monitor" }) {
   if (name === "moon") {
     return (
@@ -101,13 +103,21 @@ function Icon({ name }: { name: "sun" | "moon" | "monitor" }) {
   );
 }
 
-export function ThemeToggle({ className }: { className?: string }) {
+/** 顶部/菜单中的主题切换按钮。 */
+export function ThemeToggle({
+  className,
+  showLabel = true,
+}: {
+  className?: string;
+  showLabel?: boolean;
+}) {
   const { preference, resolved, setPreference } = useTheme();
 
   const iconName =
     preference === "system" ? "monitor" : resolved === "dark" ? "moon" : "sun";
 
   const onClick = () => setPreference(nextPreference(preference));
+  const layoutClassName = showLabel ? "gap-2 px-4" : "h-9 w-9 px-0";
 
   return (
     <Button
@@ -115,13 +125,14 @@ export function ThemeToggle({ className }: { className?: string }) {
       variant="ghost"
       size="sm"
       onClick={onClick}
-      className={cn("gap-2 px-4", className)}
+      className={cn(layoutClassName, className)}
       aria-label={`主题：${labelFor(preference)}（点击切换）`}
       title={`主题：${labelFor(preference)}（点击切换）`}
     >
       <Icon name={iconName} />
-      <span className="hidden sm:inline">主题：{labelFor(preference)}</span>
+      {showLabel ? (
+        <span className="hidden sm:inline">主题：{labelFor(preference)}</span>
+      ) : null}
     </Button>
   );
 }
-

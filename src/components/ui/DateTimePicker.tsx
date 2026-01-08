@@ -18,6 +18,12 @@ export type DateTimePickerProps = {
   triggerClassName?: string;
 };
 
+/**
+ * ISO 时间字符串 ↔ 本地日期/时间输入框之间的转换。
+ *
+ * 注意：`toISOString()` 输出为 UTC，但这里的构造使用本地时间，
+ * 因此能保证“用户选择的本地时间”在服务端存储/展示时一致。
+ */
 function CalendarIcon() {
   return (
     <svg
@@ -39,6 +45,7 @@ function CalendarIcon() {
   );
 }
 
+/** 将 ISO 字符串转成 `<input type="date|time">` 需要的本地字符串。 */
 function isoToLocalParts(iso: string): { date: string; time: string } {
   const ms = Date.parse(iso);
   if (Number.isNaN(ms)) return { date: "", time: "" };
@@ -50,6 +57,11 @@ function isoToLocalParts(iso: string): { date: string; time: string } {
   };
 }
 
+/**
+ * 将本地日期/时间输入拼回 ISO 字符串。
+ *
+ * 返回 null 表示输入不完整或非法。
+ */
 function localPartsToIso(date: string, time: string): string | null {
   if (!date || !time) return null;
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
@@ -70,6 +82,7 @@ function localPartsToIso(date: string, time: string): string | null {
   return new Date(ms).toISOString();
 }
 
+/** 以本地时区格式化展示（用于触发按钮文案）。 */
 function formatLocal(iso: string): string {
   const ms = Date.parse(iso);
   if (Number.isNaN(ms)) return iso;
@@ -82,6 +95,11 @@ function formatLocal(iso: string): string {
   });
 }
 
+/**
+ * 轻量时间选择器：按钮触发 → Dialog → date/time 输入。
+ *
+ * 适用：订阅到期时间（expires_at）。
+ */
 export function DateTimePicker({
   value,
   onChange,
@@ -209,4 +227,3 @@ export function DateTimePicker({
     </div>
   );
 }
-

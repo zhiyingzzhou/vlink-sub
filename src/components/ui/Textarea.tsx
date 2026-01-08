@@ -15,6 +15,7 @@ const base =
 
 export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
+/** 多行输入框基础样式（forwardRef 便于 form/焦点控制）。 */
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   function Textarea({ className, ...props }, ref) {
     return <textarea ref={ref} className={cn(base, className)} {...props} />;

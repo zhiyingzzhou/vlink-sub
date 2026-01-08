@@ -34,6 +34,13 @@ export type SelectMenuProps<T extends string> = {
   triggerClassName?: string;
 };
 
+/**
+ * 用 Dialog 实现的“可搜索下拉选择器”（移动端友好）。
+ *
+ * - 支持平铺 options 或分组 groups（二选一）
+ * - 可选启用搜索：按 label/description 过滤
+ * - `T extends string` 让 value 在 TS 里保持强类型
+ */
 function ArrowIcon() {
   return (
     <svg
@@ -95,6 +102,7 @@ function findSelected<T extends string>(
   return list.find((o) => o.value === value) || null;
 }
 
+/** 入口组件：按钮触发 → Dialog 列表选择。 */
 export function SelectMenu<T extends string>({
   value,
   onValueChange,
@@ -138,6 +146,7 @@ export function SelectMenu<T extends string>({
   const onPick = (next: T) => {
     onValueChange(next);
     setOpen(false);
+    setQ("");
   };
 
   return (
@@ -152,11 +161,11 @@ export function SelectMenu<T extends string>({
           "w-full h-12 rounded-full px-5 text-sm",
           "bg-input text-foreground",
           "border border-border/60",
-          "shadow-[var(--shadow-soft)]",
-          "transition-all duration-300 [transition-timing-function:var(--ease-organic)]",
+          "shadow-(--shadow-soft)",
+          "transition-all duration-300 ease-(--ease-organic)",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           "flex items-center justify-between gap-3",
-          disabled ? "opacity-60 cursor-not-allowed" : "hover:shadow-[var(--shadow-soft-hover)]",
+          disabled ? "opacity-60 cursor-not-allowed" : "hover:shadow-(--shadow-soft-hover)",
           triggerClassName
         )}
       >
@@ -192,7 +201,7 @@ export function SelectMenu<T extends string>({
           <div className="max-h-[52vh] overflow-auto pr-1">
             <div className="grid gap-3">
               {renderedGroups.length === 0 ? (
-                <div className="rounded-[2rem] border border-border/60 bg-background/60 p-4 text-sm text-muted-foreground shadow-[var(--shadow-soft)]">
+                <div className="rounded-4xl border border-border/60 bg-background/60 p-4 text-sm text-muted-foreground shadow-(--shadow-soft)">
                   没有匹配项
                 </div>
               ) : (
@@ -243,4 +252,3 @@ export function SelectMenu<T extends string>({
     </div>
   );
 }
-
