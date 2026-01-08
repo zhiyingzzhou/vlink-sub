@@ -1,0 +1,56 @@
+<svg width="1200" height="380" viewBox="0 0 1200 380" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="vlink-sub header">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A0A0A" />
+      <stop offset="1" stop-color="#0A0A0A" />
+    </linearGradient>
+    <linearGradient id="stroke" x1="0" y1="190" x2="620" y2="190" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6A00FF" stop-opacity="0" />
+      <stop offset="0.15" stop-color="#6A00FF" stop-opacity="0.18" />
+      <stop offset="0.55" stop-color="#6A00FF" stop-opacity="0.55" />
+      <stop offset="1" stop-color="#6A00FF" stop-opacity="0.22" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="380" fill="url(#bg)" />
+
+  <!-- 左侧跑道线条（参考图的弧线结构，紫色霓虹风） -->
+  <g filter="url(#glow)" opacity="0.95">
+    <rect x="-260" y="72" width="760" height="236" rx="118" stroke="url(#stroke)" stroke-width="2" fill="none" />
+    <rect x="-238" y="84" width="716" height="212" rx="106" stroke="url(#stroke)" stroke-width="2" fill="none" opacity="0.75" />
+    <rect x="-216" y="96" width="672" height="188" rx="94" stroke="url(#stroke)" stroke-width="2" fill="none" opacity="0.60" />
+    <rect x="-194" y="108" width="628" height="164" rx="82" stroke="url(#stroke)" stroke-width="2" fill="none" opacity="0.50" />
+    <rect x="-172" y="120" width="584" height="140" rx="70" stroke="url(#stroke)" stroke-width="2" fill="none" opacity="0.42" />
+    <rect x="-150" y="132" width="540" height="116" rx="58" stroke="url(#stroke)" stroke-width="2" fill="none" opacity="0.34" />
+  </g>
+
+  <!-- 右上角标签 -->
+  <g>
+    <rect x="930" y="58" width="210" height="54" rx="27" fill="rgba(106,0,255,0.14)" stroke="rgba(106,0,255,0.55)" />
+    <text x="995" y="92" fill="#FFFFFF" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" letter-spacing="2">
+      VLINK
+    </text>
+    <rect x="1080" y="66" width="52" height="38" rx="19" fill="#6A00FF" />
+    <text x="1095" y="92" fill="#0A0A0A" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="900">
+      HUB
+    </text>
+  </g>
+
+  <!-- 品牌文案 -->
+  <g>
+    <text x="700" y="210" fill="#FFFFFF" font-size="54" font-family="Arial, Helvetica, sans-serif" font-weight="800">
+      <tspan fill="#6A00FF">Quadrant</tspan>
+      <tspan> Sub</tspan>
+    </text>
+    <text x="700" y="254" fill="rgba(255,255,255,0.70)" font-size="18" font-family="Arial, Helvetica, sans-serif" font-weight="500">
+      vlink-sub · 节点转换与订阅管理（Clash Meta / Mihomo）
+    </text>
+  </g>
+</svg>

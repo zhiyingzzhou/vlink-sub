@@ -1,0 +1,32 @@
+[
+  {
+    "id": "7b2e3b2a-8d3b-4d3f-9c6a-2b8e5c4b1a01",
+    "title": "Loyalsoldier · 经典规则（推荐）",
+    "file": "loyalsoldier-classic.yaml"
+  },
+  {
+    "id": "7b2e3b2a-8d3b-4d3f-9c6a-2b8e5c4b1a02",
+    "title": "anti-AD + Loyalsoldier · 去广告增强",
+    "file": "anti-ad-loyalsoldier.yaml"
+  },
+  {
+    "id": "7b2e3b2a-8d3b-4d3f-9c6a-2b8e5c4b1a03",
+    "title": "BlackMatrix7 · 国内直连",
+    "file": "blackmatrix7-cn-direct.yaml"
+  },
+  {
+    "id": "7b2e3b2a-8d3b-4d3f-9c6a-2b8e5c4b1a04",
+    "title": "BlackMatrix7 · 流媒体分组",
+    "file": "blackmatrix7-streaming.yaml"
+  },
+  {
+    "id": "7b2e3b2a-8d3b-4d3f-9c6a-2b8e5c4b1a05",
+    "title": "ACL4SSR · GFWList（经典）",
+    "file": "acl4ssr-gfwlist.yaml"
+  },
+  {
+    "id": "7b2e3b2a-8d3b-4d3f-9c6a-2b8e5c4b1a06",
+    "title": "ACL4SSR · 流媒体分组",
+    "file": "acl4ssr-streaming.yaml"
+  }
+]

@@ -1,0 +1,108 @@
+<!--
+vlink-sub · Supabase Auth 邮件模板（Magic Link / OTP）
+
+使用方式：
+Supabase Dashboard → Authentication → Email Templates → Magic Link
+把此文件内容粘贴到 HTML 模板中，并按需修改文案/品牌信息。
+
+注意：
+- 关键链接变量：{{ .ConfirmationURL }}
+- 不要把 service_role key 放到任何 NEXT_PUBLIC_* 或邮件模板里
+-->
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>登录验证 · vlink-sub</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f5f6f8;">
+    <!-- Preheader（隐藏预览文案） -->
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      你的登录链接已生成，请点击完成登录。
+    </div>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;">
+      <tr>
+        <td align="center" style="padding:28px 16px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #e7e9ee;">
+            <!-- Header -->
+            <tr>
+              <td style="background:#0a0a0a;padding:0;">
+                <img
+                  src="{{ .SiteURL }}/email/header.svg"
+                  width="600"
+                  height="190"
+                  alt="vlink-sub"
+                  style="display:block;width:100%;max-width:600px;height:auto;border:0;outline:none;text-decoration:none;"
+                />
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding:34px 36px 10px 36px;">
+                <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;color:#0f172a;">
+                  <div style="font-size:20px;line-height:1.4;font-weight:800;color:#0f172a;">
+                    尊敬的用户：
+                  </div>
+                  <div style="margin-top:18px;font-size:16px;line-height:1.8;color:#334155;">
+                    你正在登录 <strong>vlink-sub</strong>。
+                  </div>
+
+                  <div style="margin-top:14px;font-size:18px;line-height:1.7;font-weight:700;color:#0f172a;">
+                    点击下方按钮即可完成登录验证
+                  </div>
+
+                  <!-- CTA Button -->
+                  <div style="margin-top:20px;">
+                    <a
+                      href="{{ .ConfirmationURL }}"
+                      style="display:inline-block;background:#6a00ff;color:#ffffff;text-decoration:none;padding:14px 18px;border-radius:14px;font-size:15px;font-weight:700;letter-spacing:0.2px;"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      快速登录
+                    </a>
+                  </div>
+
+                  <div style="margin-top:18px;font-size:13px;line-height:1.8;color:#64748b;">
+                    如果按钮无法点击，请复制以下链接到浏览器打开：
+                    <div style="margin-top:8px;word-break:break-all;">
+                      <a href="{{ .ConfirmationURL }}" style="color:#2563eb;text-decoration:underline;" target="_blank" rel="noreferrer">
+                        {{ .ConfirmationURL }}
+                      </a>
+                    </div>
+                  </div>
+
+                  <div style="margin-top:22px;padding:14px 14px;border-radius:16px;border:1px solid #e7e9ee;background:#f8fafc;">
+                    <div style="font-size:13px;line-height:1.8;color:#475569;">
+                      安全提示：此链接等同密码，请勿转发；如非本人操作可忽略本邮件。
+                    </div>
+                  </div>
+
+                  <div style="margin-top:22px;font-size:16px;line-height:1.8;color:#334155;">
+                    祝你使用愉快<br />
+                    <span style="font-weight:700;color:#0f172a;">vlink-sub</span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding:18px 36px 28px 36px;">
+                <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;font-size:12px;line-height:1.7;color:#94a3b8;">
+                  本邮件由系统自动发送，请勿直接回复。<br />
+                  © vlink-sub
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

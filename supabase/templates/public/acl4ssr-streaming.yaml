@@ -1,0 +1,102 @@
+# Source: https://github.com/ACL4SSR/ACL4SSR
+mode: rule
+log-level: info
+mixed-port: 7890
+
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  fake-ip-filter:
+    - "*.lan"
+    - "localhost.ptlogin2.qq.com"
+
+proxy-groups:
+  - name: "🎬 流媒体"
+    type: select
+    proxies:
+      - "🚀 节点选择"
+      - "⚡ 自动测速"
+      - "DIRECT"
+
+rule-providers:
+  ACL4SSR_BanAD:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/BanAD.yaml
+    path: ./ruleset/ACL4SSR_BanAD.yaml
+    interval: 86400
+  ACL4SSR_BanProgramAD:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/BanProgramAD.yaml
+    path: ./ruleset/ACL4SSR_BanProgramAD.yaml
+    interval: 86400
+  ACL4SSR_UnBan:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/UnBan.yaml
+    path: ./ruleset/ACL4SSR_UnBan.yaml
+    interval: 86400
+  ACL4SSR_LAN:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/LocalAreaNetwork.yaml
+    path: ./ruleset/ACL4SSR_LAN.yaml
+    interval: 86400
+  ACL4SSR_ChinaDomain:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/ChinaDomain.yaml
+    path: ./ruleset/ACL4SSR_ChinaDomain.yaml
+    interval: 86400
+  ACL4SSR_ChinaCompanyIp:
+    type: http
+    behavior: ipcidr
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/ChinaCompanyIp.yaml
+    path: ./ruleset/ACL4SSR_ChinaCompanyIp.yaml
+    interval: 86400
+  ACL4SSR_ChinaIp:
+    type: http
+    behavior: ipcidr
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/ChinaIp.yaml
+    path: ./ruleset/ACL4SSR_ChinaIp.yaml
+    interval: 86400
+  ACL4SSR_Apple:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/Apple.yaml
+    path: ./ruleset/ACL4SSR_Apple.yaml
+    interval: 86400
+  ACL4SSR_ProxyMedia:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/ProxyMedia.yaml
+    path: ./ruleset/ACL4SSR_ProxyMedia.yaml
+    interval: 86400
+  ACL4SSR_ProxyGFWlist:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Providers/ProxyGFWlist.yaml
+    path: ./ruleset/ACL4SSR_ProxyGFWlist.yaml
+    interval: 86400
+
+rules:
+  - RULE-SET,ACL4SSR_UnBan,DIRECT
+  - RULE-SET,ACL4SSR_BanAD,REJECT
+  - RULE-SET,ACL4SSR_BanProgramAD,REJECT
+  - RULE-SET,ACL4SSR_LAN,DIRECT
+  - RULE-SET,ACL4SSR_ChinaDomain,DIRECT
+  - RULE-SET,ACL4SSR_ChinaCompanyIp,DIRECT,no-resolve
+  - RULE-SET,ACL4SSR_ChinaIp,DIRECT,no-resolve
+  - RULE-SET,ACL4SSR_Apple,DIRECT
+  - RULE-SET,ACL4SSR_ProxyMedia,🎬 流媒体
+  - RULE-SET,ACL4SSR_ProxyGFWlist,🚀 节点选择
+  - MATCH,🚀 节点选择
