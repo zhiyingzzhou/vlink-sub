@@ -343,7 +343,7 @@ export default function DashboardCreatePage() {
       <PageHeader
         badge={<Badge tone="accent">控制台 · 创建订阅</Badge>}
         title="生成 Clash Meta（Mihomo）订阅"
-        description="粘贴节点混杂文本（来自面板 / 客户端 / 频道等），自动解析多协议节点；选择模板与有效期后生成短链订阅。"
+        description="粘贴节点混杂文本（来自面板 / 客户端 / 频道 / 3x-ui 等），自动解析多协议节点；选择模板与有效期后生成短链订阅。"
         actions={
           <>
             <ButtonLink href="/dashboard/subscriptions" variant="secondary" size="sm">

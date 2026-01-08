@@ -11,7 +11,7 @@ export default function HomePage() {
         <PageHeader
           badge={<Badge tone="primary">Nodes → Mihomo · Organic / Natural</Badge>}
           title="vlink-sub"
-          description="把你从面板 / 客户端 / 频道复制的节点混杂文本一键解析成 Clash Meta（Mihomo）订阅：全协议解析、模板快照、短链防扫库、ETag/304 缓存与加密存储。"
+          description="把你从面板 / 客户端 / 频道 / 3x-ui 导出的节点混杂文本一键解析成 Clash Meta（Mihomo）订阅：全协议解析、模板快照、短链防扫库、ETag/304 缓存与加密存储。"
           actions={<HomeHeroActions />}
         >
           <div className="flex flex-wrap gap-2">
